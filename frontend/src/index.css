@@ -148,11 +148,6 @@ button.accent {
   color: white;
 }
 
-button.accent:hover {
-  background-color: #b8a5f;
-  border-color: #b8a5f;
-}
-
 /* Input fields - Clean and minimal */
 input,
 textarea,
