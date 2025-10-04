@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 
 function Upload() {
   const navigate = useNavigate();
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
@@ -22,46 +22,55 @@ function Upload() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    if (e.dataTransfer.files?.[0]) {
-      handleFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
     }
   };
 
-  const handleFile = (selectedFile) => {
+  const handleFiles = (selectedFiles) => {
+    const fileArray = Array.from(selectedFiles);
     const validTypes = ['text/csv', 'application/pdf'];
-    const isValid = validTypes.includes(selectedFile.type) || 
-                    selectedFile.name.endsWith('.csv') || 
-                    selectedFile.name.endsWith('.pdf');
-    
-    if (!isValid) {
-      setError('Please select a CSV or PDF file');
-      return;
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    const newValidFiles = [];
+    for (const f of fileArray) {
+      const isValid = validTypes.includes(f.type) || f.name.endsWith('.csv') || f.name.endsWith('.pdf');
+      if (!isValid) {
+        setError('Please select only CSV or PDF files');
+        continue;
+      }
+      if (f.size > maxSize) {
+        setError('Each file must be less than 10MB');
+        continue;
+      }
+
+      // avoid duplicates by name+size
+      const exists = files.some(existing => existing.name === f.name && existing.size === f.size);
+      if (!exists) newValidFiles.push(f);
     }
-    
-    if (selectedFile.size > 10 * 1024 * 1024) {
-      setError('File must be less than 10MB');
-      return;
+
+    if (newValidFiles.length > 0) {
+      setError('');
+      setFiles(prev => [...prev, ...newValidFiles]);
     }
-    
-    setError('');
-    setFile(selectedFile);
   };
 
   const handleFileChange = (e) => {
-    if (e.target.files?.[0]) {
-      handleFile(e.target.files[0]);
+    if (e.target.files && e.target.files.length > 0) {
+      handleFiles(e.target.files);
     }
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!files || files.length === 0) return;
     
     setUploading(true);
     setError('');
     
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      // Append all files using the same field name 'files' so server can accept multiple entries
+      files.forEach((f) => formData.append('files', f));
 
       const response = await fetch('/api/deals/upload', {
         method: 'POST',
@@ -114,7 +123,7 @@ function Upload() {
           style={{ 
             border: dragActive ? '2px dashed #d4a574' : '2px dashed #e5ddd5', 
             borderRadius: '12px', 
-            padding: file ? '2rem' : '4rem', 
+            padding: files.length ? '2rem' : '4rem', 
             textAlign: 'center', 
             backgroundColor: dragActive ? '#f9f6f2' : 'white',
             transition: 'all 0.3s ease',
@@ -125,7 +134,7 @@ function Upload() {
           onDragOver={handleDrag}
           onDrop={handleDrop}
         >
-          {!file ? (
+          {!files.length ? (
             <div>
               <div style={{ 
                 width: '80px', 
@@ -168,6 +177,7 @@ function Upload() {
                   type="file"
                   style={{ display: 'none' }}
                   accept=".csv,.pdf"
+                  multiple
                   onChange={handleFileChange}
                 />
               </label>
@@ -175,55 +185,59 @@ function Upload() {
           ) : (
             <div>
               {/* File Preview */}
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'space-between',
-                padding: '1.25rem 1.5rem', 
-                backgroundColor: '#f5f1ed', 
-                borderRadius: '8px',
-                marginBottom: '2rem',
-                border: '1px solid #e8d5c4'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ 
-                    width: '48px', 
-                    height: '48px', 
-                    backgroundColor: '#e8d5c4',
-                    borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+              <div style={{ marginBottom: '1.5rem' }}>
+                {files.map((f, idx) => (
+                  <div key={`${f.name}-${f.size}-${idx}`} style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    padding: '0.85rem 1rem', 
+                    backgroundColor: '#f5f1ed', 
+                    borderRadius: '8px',
+                    marginBottom: '0.75rem',
+                    border: '1px solid #e8d5c4'
                   }}>
-                    <svg style={{ width: '1.5rem', height: '1.5rem', color: '#b88a5f' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ 
+                        width: '44px', 
+                        height: '44px', 
+                        backgroundColor: '#e8d5c4',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <svg style={{ width: '1.2rem', height: '1.2rem', color: '#b88a5f' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <div style={{ textAlign: 'left' }}>
+                        <p style={{ fontSize: '0.9375rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '0.25rem' }}>{f.name}</p>
+                        <p style={{ fontSize: '0.8125rem', color: '#999999' }}>
+                          {(f.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+
+                    {!uploading && (
+                      <button 
+                        onClick={() => setFiles(prev => prev.filter((_, i) => i !== idx))}
+                        style={{ 
+                          background: 'none', 
+                          border: 'none', 
+                          color: '#999999', 
+                          cursor: 'pointer', 
+                          padding: '0.5rem',
+                          transition: 'color 0.2s'
+                        }}
+                      >
+                        <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
-                  <div style={{ textAlign: 'left' }}>
-                    <p style={{ fontSize: '0.9375rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '0.25rem' }}>{file.name}</p>
-                    <p style={{ fontSize: '0.8125rem', color: '#999999' }}>
-                      {(file.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
-                </div>
-                
-                {!uploading && (
-                  <button 
-                    onClick={() => setFile(null)}
-                    style={{ 
-                      background: 'none', 
-                      border: 'none', 
-                      color: '#999999', 
-                      cursor: 'pointer', 
-                      padding: '0.5rem',
-                      transition: 'color 0.2s'
-                    }}
-                  >
-                    <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
+                ))}
               </div>
 
               {/* Upload Button */}
@@ -243,7 +257,7 @@ function Upload() {
                   transition: 'all 0.2s ease'
                 }}
               >
-                {uploading ? 'ANALYZING...' : 'UPLOAD & ANALYZE'}
+                {uploading ? 'ANALYZING...' : `UPLOAD & ANALYZE (${files.length})`}
               </button>
             </div>
           )}
