@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -7,6 +9,35 @@ function Dashboard() {
   const location = useLocation();
   const [dealData, setDealData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const mainRef = useRef(null);
+
+  const handleExportPdf = async () => {
+    try {
+      const element = mainRef.current;
+      if (!element) return;
+
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new jsPDF('landscape', 'pt', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      const img = new Image();
+      img.src = imgData;
+      await new Promise(res => { img.onload = res; });
+
+      const ratio = Math.min(pdfWidth / img.width, pdfHeight / img.height);
+      const imgW = img.width * ratio;
+      const imgH = img.height * ratio;
+      const x = (pdfWidth - imgW) / 2;
+      const y = (pdfHeight - imgH) / 2;
+
+      pdf.addImage(imgData, 'JPEG', x, y, imgW, imgH);
+      pdf.save(`deal-${dealData?.id || 'report'}-${Date.now()}.pdf`);
+    } catch (err) {
+      console.error('Export PDF failed', err);
+    }
+  };
 
   useEffect(() => {
     const fetchDealData = async () => {
@@ -65,7 +96,7 @@ function Dashboard() {
     <div style={{ minHeight: '100vh', backgroundColor: '#faf8f6' }}>
       <Navigation />
       
-      <main style={{ maxWidth: '1400px', margin: '0 auto', padding: '2.5rem 3rem' }}>
+  <main ref={mainRef} style={{ maxWidth: '1400px', margin: '0 auto', padding: '2.5rem 3rem' }}>
         
         {/* Deal Overview Header */}
         <div style={{ 
@@ -98,7 +129,7 @@ function Dashboard() {
                 <span>🏢 {dealData.industry}</span>
               </div>
             </div>
-            <button style={{
+            <button onClick={handleExportPdf} style={{
               padding: '0.625rem 1.5rem',
               backgroundColor: 'transparent',
               border: '1px solid #e5ddd5',

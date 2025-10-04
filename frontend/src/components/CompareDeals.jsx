@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 function CompareDeals() {
   const [dealA, setDealA] = useState(null);
@@ -13,6 +15,47 @@ function CompareDeals() {
   const [selectedDealA, setSelectedDealA] = useState('');
   const [selectedDealB, setSelectedDealB] = useState('');
   const [error, setError] = useState('');
+  const mainRef = useRef(null);
+
+  const handleExportPdf = async () => {
+    try {
+      setError('');
+      const element = mainRef.current;
+      if (!element) {
+        setError('Nothing to export');
+        return;
+      }
+
+      // use html2canvas to capture the element
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+      // A4 dimensions in pt (1pt = 1/72 inch). jsPDF uses 'pt' by default with 'portrait' orientation
+      const pdf = new jsPDF('landscape', 'pt', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      // Calculate image dimensions to fit into PDF while preserving aspect ratio
+      const img = new Image();
+      img.src = imgData;
+      await new Promise((res) => { img.onload = res; });
+
+      const imgWidth = img.width;
+      const imgHeight = img.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgRenderWidth = imgWidth * ratio;
+      const imgRenderHeight = imgHeight * ratio;
+
+      const x = (pdfWidth - imgRenderWidth) / 2;
+      const y = (pdfHeight - imgRenderHeight) / 2;
+
+      pdf.addImage(imgData, 'JPEG', x, y, imgRenderWidth, imgRenderHeight);
+      pdf.save(`deal-comparison-${Date.now()}.pdf`);
+    } catch (err) {
+      console.error('Export PDF error:', err);
+      setError('Failed to export PDF');
+    }
+  };
 
   useEffect(() => {
     fetchPreviousDeals();
@@ -319,7 +362,7 @@ function CompareDeals() {
     <div style={{ minHeight: '100vh', backgroundColor: '#faf8f6' }}>
       <Navigation />
       
-      <main style={{ maxWidth: '1600px', margin: '0 auto', padding: '2.5rem 3rem' }}>
+      <main ref={mainRef} style={{ maxWidth: '1600px', margin: '0 auto', padding: '2.5rem 3rem' }}>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
           <h1 style={{ fontSize: '2rem', fontWeight: '300', color: '#1a1a1a', letterSpacing: '-0.01em' }}>
@@ -341,7 +384,7 @@ function CompareDeals() {
             >
               CHANGE DEALS
             </button>
-            <button style={{
+            <button onClick={handleExportPdf} style={{
               padding: '0.625rem 1.5rem',
               backgroundColor: 'transparent',
               border: '1px solid #e5ddd5',
