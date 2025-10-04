@@ -21,83 +21,54 @@ function History() {
   }, [deals, searchQuery, selectedIndustry, sortBy]);
 
   const fetchDeals = async () => {
-    // Replace with actual API call
-    // const response = await fetch('/api/deals');
-    // const data = await response.json();
-    
-    // Mock data
-    const mockDeals = [
-      {
-        id: '1',
-        companyName: 'Tech Innovations Inc.',
-        dealName: 'Series B Acquisition',
-        dateUploaded: '2025-03-15',
-        revenue: 125,
-        ebitda: 25,
-        debtRatio: 0.65,
-        industry: 'Technology',
-        summary: 'Strong YoY growth of 15%, driven by expanding operations in APAC. Healthy EBITDA margin of 20%, though debt levels remain slightly elevated.',
-        tags: ['Tech', 'Growth'],
-        fileName: 'tech_innovations_q4.pdf'
-      },
-      {
-        id: '2',
-        companyName: 'Global Health Corp.',
-        dealName: 'Market Expansion Deal',
-        dateUploaded: '2025-03-10',
-        revenue: 98,
-        ebitda: 15,
-        debtRatio: 0.85,
-        industry: 'Healthcare',
-        summary: 'Moderate growth with focus on market consolidation. Lower debt levels and strong operational efficiency, but facing competitive pressure.',
-        tags: ['Healthcare', 'Expansion'],
-        fileName: 'global_health_analysis.csv'
-      },
-      {
-        id: '3',
-        companyName: 'Finance Solutions Ltd.',
-        dealName: 'Strategic Partnership',
-        dateUploaded: '2025-03-05',
-        revenue: 210,
-        ebitda: 45,
-        debtRatio: 0.45,
-        industry: 'Finance',
-        summary: 'Excellent financial health with strong cash reserves. Leading market position with minimal leverage and consistent profitability.',
-        tags: ['Finance', 'Stable'],
-        fileName: 'finance_solutions_report.pdf'
-      },
-      {
-        id: '4',
-        companyName: 'Retail Connect Inc.',
-        dealName: 'E-commerce Merger',
-        dateUploaded: '2025-02-28',
-        revenue: 156,
-        ebitda: 28,
-        debtRatio: 0.72,
-        industry: 'Retail',
-        summary: 'Rapid digital transformation showing positive results. E-commerce growth offsetting brick-and-mortar decline.',
-        tags: ['Retail', 'Digital'],
-        fileName: 'retail_connect_data.csv'
-      },
-      {
-        id: '5',
-        companyName: 'Energy Plus Corp.',
-        dealName: 'Green Energy Investment',
-        dateUploaded: '2025-02-20',
-        revenue: 340,
-        ebitda: 68,
-        debtRatio: 0.55,
-        industry: 'Energy',
-        summary: 'Transitioning to renewable energy sources. Strong financial position with growing renewable portfolio.',
-        tags: ['Energy', 'Sustainable'],
-        fileName: 'energy_plus_assessment.pdf'
+    try {
+      const response = await fetch('/api/deals');
+      if (response.ok) {
+        const data = await response.json();
+        setDeals(data);
+        setFilteredDeals(data);
+      } else {
+        // Fallback to mock data if API fails
+        setDeals(getMockDeals());
+        setFilteredDeals(getMockDeals());
       }
-    ];
-    
-    setDeals(mockDeals);
-    setFilteredDeals(mockDeals);
+    } catch (error) {
+      console.error('Error fetching deals:', error);
+      // Fallback to mock data
+      setDeals(getMockDeals());
+      setFilteredDeals(getMockDeals());
+    }
     setLoading(false);
   };
+
+  const getMockDeals = () => [
+    {
+      id: '1',
+      companyName: 'Tech Innovations Inc.',
+      dealName: 'Series B Acquisition',
+      dateUploaded: '2025-03-15',
+      revenue: 125,
+      ebitda: 25,
+      debtRatio: 0.65,
+      industry: 'Technology',
+      summary: 'Strong YoY growth of 15%, driven by expanding operations in APAC. Healthy EBITDA margin of 20%, though debt levels remain slightly elevated.',
+      tags: ['Tech', 'Growth'],
+      fileName: 'tech_innovations_q4.pdf'
+    },
+    {
+      id: '2',
+      companyName: 'Global Health Corp.',
+      dealName: 'Market Expansion Deal',
+      dateUploaded: '2025-03-10',
+      revenue: 98,
+      ebitda: 15,
+      debtRatio: 0.85,
+      industry: 'Healthcare',
+      summary: 'Moderate growth with focus on market consolidation. Lower debt levels and strong operational efficiency, but facing competitive pressure.',
+      tags: ['Healthcare', 'Expansion'],
+      fileName: 'global_health_analysis.csv'
+    }
+  ];
 
   const filterAndSortDeals = () => {
     let filtered = [...deals];
@@ -136,7 +107,6 @@ function History() {
 
     setFilteredDeals(filtered);
   };
-
   const handleSelectDeal = (dealId) => {
     setSelectedDeals(prev => 
       prev.includes(dealId) 
