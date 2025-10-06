@@ -145,6 +145,95 @@ function Dashboard() {
           </div>
         </div>
 
+        {/*new block*/}
+        {/* Deal Summary Card */}
+        {dealData.dealSummary && (
+          <div style={{ 
+            backgroundColor: 'white', 
+            border: '2px solid #d4a574',
+            borderRadius: '12px', 
+            padding: '2rem 2.5rem', 
+            marginBottom: '2.5rem',
+            boxShadow: '0 4px 20px rgba(212, 165, 116, 0.15)'
+          }}>
+            <h2 style={{ 
+              fontSize: '1.5rem', 
+              fontWeight: '500', 
+              color: '#1a1a1a', 
+              marginBottom: '1.5rem',
+              letterSpacing: '-0.01em',
+              textTransform: 'uppercase',
+              borderBottom: '1px solid #e5ddd5',
+              paddingBottom: '0.75rem'
+            }}>
+              DEAL SUMMARY
+            </h2>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+              <div>
+                <p style={{ fontSize: '0.8125rem', color: '#999999', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Health Score
+                </p>
+                <p style={{ fontSize: '2rem', fontWeight: '300', color: '#1a1a1a' }}>
+                  {dealData.dealSummary.healthScore}/100 <span style={{ fontSize: '1.25rem' }}>{dealData.dealSummary.healthStatus}</span>
+                </p>
+              </div>
+              
+              <div>
+                <p style={{ fontSize: '0.8125rem', color: '#999999', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Deal Signal
+                </p>
+                <p style={{ 
+                  fontSize: '2rem', 
+                  fontWeight: '300', 
+                  color: dealData.dealSummary.dealSignal === 'Attractive' ? '#2d5f3f' : 
+                        dealData.dealSummary.dealSignal === 'Cautious' ? '#c33' : '#1a1a1a'
+                }}>
+                  {dealData.dealSummary.dealSignal}
+                </p>
+              </div>
+              
+              <div>
+                <p style={{ fontSize: '0.8125rem', color: '#999999', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Valuation
+                </p>
+                <p style={{ fontSize: '1.5rem', fontWeight: '300', color: '#1a1a1a' }}>
+                  {dealData.dealSummary.valuationStatus}
+                </p>
+              </div>
+              
+              <div>
+                <p style={{ fontSize: '0.8125rem', color: '#999999', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  EV / EBITDA
+                </p>
+                <p style={{ fontSize: '1.5rem', fontWeight: '300', color: '#1a1a1a' }}>
+                  {dealData.dealSummary.evToEbitda}x 
+                  <span style={{ fontSize: '0.875rem', color: '#999999', marginLeft: '0.5rem' }}>
+                    (vs. Sector Avg: {dealData.dealSummary.sectorAvgEV}x)
+                  </span>
+                </p>
+              </div>
+            </div>
+            
+            <div style={{ 
+              backgroundColor: '#f5f1ed', 
+              padding: '1rem 1.25rem', 
+              borderRadius: '8px',
+              marginTop: '1rem'
+            }}>
+              <p style={{ fontSize: '0.8125rem', color: '#999999', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Implied Valuation (EV)
+              </p>
+              <p style={{ fontSize: '1.25rem', fontWeight: '400', color: '#1a1a1a', marginBottom: '0.75rem' }}>
+                {dealData.dealSummary.impliedEV}
+              </p>
+              <p style={{ fontSize: '0.9375rem', color: '#666666', lineHeight: '1.6', fontStyle: 'italic' }}>
+                {dealData.dealSummary.insight}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Two Column Layout */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '2.5rem' }}>
           
@@ -152,14 +241,21 @@ function Dashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             
             {/* Metrics Cards */}
-            <MetricCard icon="💰" label="Revenue" value={`$${dealData.metrics.revenue}M`} />
+            {/* new block */}
+            <MetricCard icon="💰" label="Profit Margin" value={`${dealData.metrics.profitMargin}%`} />
+            <MetricCard icon="📊" label="Debt Ratio" value={dealData.metrics.debtRatio} />
+            <MetricCard icon="💵" label="Current Ratio" value={dealData.metrics.currentRatio} positive={parseFloat(dealData.metrics.currentRatio) > 1.5} />
+            <MetricCard icon="📈" label="EV / EBITDA" value={`${dealData.metrics.evToEbitda}x`} />
+            <MetricCard icon="⚡" label="Debt-to-EBITDA" value={`${dealData.metrics.debtToEbitda}x`} />
+            <MetricCard icon="💸" label="Cash Flow" value={`$${dealData.metrics.cashFlow}M`} />
+            {/* <MetricCard icon="💰" label="Revenue" value={`$${dealData.metrics.revenue}M`} />
             <MetricCard icon="📈" label="Revenue Growth" value={`+${dealData.metrics.revenueGrowth}%`} positive />
             <MetricCard icon="⚡" label="EBITDA" value={`$${dealData.metrics.ebitda}M`} />
             <MetricCard icon="📉" label="Debt" value={`$${dealData.metrics.debt}M`} />
             <MetricCard icon="💵" label="Cash Flow" value={`$${dealData.metrics.cashFlow}M`} />
             <MetricCard icon="📐" label="Valuation Multiple" value={`${dealData.metrics.valuation}x`} />
             <MetricCard icon="📊" label="Debt/Equity Ratio" value={dealData.metrics.debtRatio} />
-            <MetricCard icon="🧾" label="Profit Margin" value={`${dealData.metrics.profitMargin}%`} />
+            <MetricCard icon="🧾" label="Profit Margin" value={`${dealData.metrics.profitMargin}%`} /> */}
             
           </div>
 
