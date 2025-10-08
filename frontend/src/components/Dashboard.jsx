@@ -180,18 +180,36 @@ function Dashboard() {
               </div>
               
               <div>
-                <p style={{ fontSize: '0.8125rem', color: '#999999', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Deal Signal
-                </p>
-                <p style={{ 
-                  fontSize: '2rem', 
-                  fontWeight: '300', 
-                  color: dealData.dealSummary.dealSignal === 'Attractive' ? '#2d5f3f' : 
-                        dealData.dealSummary.dealSignal === 'Cautious' ? '#c33' : '#1a1a1a'
-                }}>
-                  {dealData.dealSummary.dealSignal}
-                </p>
-              </div>
+  <p style={{ fontSize: '0.8125rem', color: '#999999', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+    Deal Signal
+  </p>
+  <p style={{ 
+    fontSize: '2rem', 
+    fontWeight: '300', 
+    color: dealData.dealSummary.dealSignal === 'Attractive' ? '#2d5f3f' : 
+          dealData.dealSummary.dealSignal === 'Cautious' ? '#c33' : '#1a1a1a',
+    marginBottom: '0.75rem'
+  }}>
+    {dealData.dealSummary.dealSignal}
+  </p>
+  
+  {/* Inline explanation - NEW */}
+  <div style={{ 
+    display: 'flex', 
+    alignItems: 'flex-start', 
+    gap: '0.5rem',
+    backgroundColor: '#fafafa',
+    padding: '0.75rem',
+    borderRadius: '6px',
+    borderLeft: '2px solid ' + (dealData.dealSummary.dealSignal === 'Attractive' ? '#2d5f3f' : 
+                                 dealData.dealSummary.dealSignal === 'Cautious' ? '#c33' : '#d4a574')
+  }}>
+    <span style={{ fontSize: '0.875rem', marginTop: '0.125rem' }}>🔍</span>
+    <p style={{ fontSize: '0.8125rem', color: '#666666', lineHeight: '1.5', margin: 0 }}>
+      {dealData.signalExplanation || dealData.dealSummary.insight}
+    </p>
+  </div>
+</div>
               
               <div>
                 <p style={{ fontSize: '0.8125rem', color: '#999999', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -213,6 +231,7 @@ function Dashboard() {
                   </span>
                 </p>
               </div>
+
             </div>
             
             <div style={{ 

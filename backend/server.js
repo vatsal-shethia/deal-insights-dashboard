@@ -659,7 +659,52 @@ const calculateDealSummary = (financialData, sector = 'Multi-Sector') => {
   };
 };
 
+//new block
+const generateDealSignalExplanation = async (financialData, dealSummary, sector) => {
+  try {
+    const prompt = `You are a private equity analyst. Explain why this deal is rated as "${dealSummary.dealSignal}".
+
+Deal Metrics:
+- Revenue: $${financialData.revenue}M
+- EBITDA: $${financialData.ebitda}M
+- Debt-to-EBITDA: ${financialData.total_liabilities && financialData.ebitda ? (financialData.total_liabilities / financialData.ebitda).toFixed(1) : 'N/A'}x
+- Health Score: ${dealSummary.healthScore}/100
+- Deal Signal: ${dealSummary.dealSignal}
+- Valuation Status: ${dealSummary.valuationStatus}
+- EV/EBITDA: ${dealSummary.evToEbitda}x (Sector Avg: ${dealSummary.sectorAvgEV}x)
+- Sector: ${sector}
+
+Provide a 2-3 sentence explanation of WHY this deal is categorized as "${dealSummary.dealSignal}". Focus on the key financial metrics that drove this rating. Be specific and concise.
+
+Return only the explanation text, no JSON.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: prompt }]
+        }
+      ],
+      config: {
+        candidateCount: 1
+      }
+    });
+
+    const explanation = response?.text 
+      || response?.candidates?.[0]?.content?.parts?.[0]?.text 
+      || `This ${dealSummary.dealSignal.toLowerCase()} deal rating reflects ${dealSummary.valuationStatus.toLowerCase()} valuation at ${dealSummary.evToEbitda}x EV/EBITDA (sector avg: ${dealSummary.sectorAvgEV}x) with leverage considerations.`;
+
+    return explanation.trim();
+    
+  } catch (error) {
+    console.error('Signal explanation generation error:', error.message);
+    return `This ${dealSummary.dealSignal.toLowerCase()} deal rating reflects ${dealSummary.valuationStatus.toLowerCase()} valuation at ${dealSummary.evToEbitda}x EV/EBITDA (sector avg: ${dealSummary.sectorAvgEV}x).`;
+  }
+};
+
 // Mock AI analysis fallback
+
 //new block
 const mockAIAnalysis = (financialData, fileName, sector) => {
   const companyName = fileName.replace(/[._-]/g, ' ').replace(/\.[^/.]+$/, "").replace(/([A-Z])/g, ' $1').trim();
@@ -816,14 +861,22 @@ Be specific and professional. Reference actual metrics and the deal assessment w
     if (!analysis) {
       throw new Error('Failed to parse Gemini response as JSON');
     }
-
+    //new block
     return {
       summary: analysis.summary || mockAIAnalysis(financialData, fileName, sector).summary,
       risks: analysis.risks || mockAIAnalysis(financialData, fileName, sector).risks,
       opportunities: analysis.opportunities || mockAIAnalysis(financialData, fileName, sector).opportunities,
       metrics,
-      dealSummary
+      dealSummary,
+      signalExplanation: analysis.signalExplanation || `This ${dealSummary.dealSignal.toLowerCase()} deal rating reflects ${dealSummary.valuationStatus.toLowerCase()} valuation at ${dealSummary.evToEbitda}x EV/EBITDA (sector avg: ${dealSummary.sectorAvgEV}x) with ${metrics.debtToEbitda}x leverage. Health score of ${dealSummary.healthScore}/100 indicates ${dealSummary.healthStatus.toLowerCase().replace(/[🟢🟡🔴]/g, '').trim()} fundamentals.`
     };
+    // return {
+    //   summary: analysis.summary || mockAIAnalysis(financialData, fileName, sector).summary,
+    //   risks: analysis.risks || mockAIAnalysis(financialData, fileName, sector).risks,
+    //   opportunities: analysis.opportunities || mockAIAnalysis(financialData, fileName, sector).opportunities,
+    //   metrics,
+    //   dealSummary
+    // };
     
   } catch (error) {
     console.error('Gemini API Error:', error.message);
