@@ -18,8 +18,9 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "mongoose": "^8.19.0",
-    "multer": "^2.0.2",
+  "multer": "^2.0.2",
     "openai": "^6.1.0",
+  "@google/genai": "^0.3.0",
     "pdf-parse": "^2.1.7"
   },
   "devDependencies": {
