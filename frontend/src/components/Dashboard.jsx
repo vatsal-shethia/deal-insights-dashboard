@@ -10,6 +10,9 @@ function Dashboard() {
   const [dealData, setDealData] = useState(null);
   const [loading, setLoading] = useState(true);
   const mainRef = useRef(null);
+  const [qaQuestion, setQaQuestion] = useState('');
+  const [qaAnswer, setQaAnswer] = useState('');
+  const [qaLoading, setQaLoading] = useState(false);
 
   const handleExportPdf = async () => {
     try {
@@ -38,6 +41,36 @@ function Dashboard() {
       console.error('Export PDF failed', err);
     }
   };
+
+  //new block
+  const handleAskQuestion = async () => {
+  if (!qaQuestion.trim()) return;
+  
+  setQaLoading(true);
+  setQaAnswer('');
+  
+  try {
+    const response = await fetch(`/api/deals/${dealId}/ask`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ question: qaQuestion })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to get answer');
+    }
+    
+    const data = await response.json();
+    setQaAnswer(data.answer);
+  } catch (error) {
+    console.error('Q&A error:', error);
+    setQaAnswer('Sorry, I couldn\'t answer that question. Please try again.');
+  } finally {
+    setQaLoading(false);
+  }
+};
 
   useEffect(() => {
     const fetchDealData = async () => {
@@ -299,6 +332,90 @@ function Dashboard() {
                 {dealData.summary}
               </p>
             </div>
+
+            {/* AI Q&A Assistant */}
+<div style={{ 
+  backgroundColor: 'white', 
+  border: '1px solid #e5ddd5',
+  borderRadius: '12px', 
+  padding: '2rem',
+  boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)'
+}}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+    <span style={{ fontSize: '1.5rem' }}>💬</span>
+    <h2 style={{ fontSize: '1.25rem', fontWeight: '500', color: '#1a1a1a', letterSpacing: '-0.01em' }}>
+      Ask AI About This Deal
+    </h2>
+  </div>
+  
+  <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+    <input
+      type="text"
+      placeholder="e.g., What's the debt-to-EBITDA ratio? Which risk is most concerning?"
+      value={qaQuestion}
+      onChange={(e) => setQaQuestion(e.target.value)}
+      onKeyPress={(e) => e.key === 'Enter' && handleAskQuestion()}
+      disabled={qaLoading}
+      style={{
+        flex: 1,
+        padding: '0.75rem 1rem',
+        border: '1px solid #e5ddd5',
+        borderRadius: '6px',
+        fontSize: '0.9375rem',
+        color: '#1a1a1a',
+        outline: 'none',
+        transition: 'border-color 0.2s'
+      }}
+    />
+    <button
+      onClick={handleAskQuestion}
+      disabled={qaLoading || !qaQuestion.trim()}
+      style={{
+        padding: '0.75rem 1.5rem',
+        backgroundColor: qaLoading || !qaQuestion.trim() ? '#e5ddd5' : '#d4a574',
+        border: 'none',
+        borderRadius: '6px',
+        color: 'white',
+        fontSize: '0.875rem',
+        fontWeight: '500',
+        cursor: qaLoading || !qaQuestion.trim() ? 'not-allowed' : 'pointer',
+        letterSpacing: '0.02em',
+        transition: 'background-color 0.2s'
+      }}
+    >
+      {qaLoading ? 'Thinking...' : 'Ask'}
+    </button>
+  </div>
+  
+      {qaAnswer && (
+        <div style={{
+          backgroundColor: '#f5f1ed',
+          padding: '1rem 1.25rem',
+          borderRadius: '8px',
+          borderLeft: '3px solid #d4a574'
+        }}>
+          <p style={{ fontSize: '0.8125rem', color: '#999999', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>
+            AI Response
+          </p>
+          <p style={{ fontSize: '0.9375rem', color: '#666666', lineHeight: '1.6', margin: 0 }}>
+            {qaAnswer}
+          </p>
+        </div>
+      )}
+      
+      {qaLoading && (
+        <div style={{
+          backgroundColor: '#faf8f6',
+          padding: '1rem 1.25rem',
+          borderRadius: '8px',
+          textAlign: 'center'
+        }}>
+          <p style={{ fontSize: '0.875rem', color: '#999999', margin: 0 }}>
+            AI is analyzing your question...
+          </p>
+        </div>
+      )}
+    </div>
 
             {/* Risks & Opportunities */}
             <div style={{ 

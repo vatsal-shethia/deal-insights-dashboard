@@ -662,7 +662,10 @@ const calculateDealSummary = (financialData, sector = 'Multi-Sector') => {
 //new block
 const generateDealSignalExplanation = async (financialData, dealSummary, sector) => {
   try {
-    const prompt = `You are a private equity analyst. Explain why this deal is rated as "${dealSummary.dealSignal}".
+    const prompt = `
+You are a private equity analyst. 
+Explain in 2–3 sentences why this deal has been rated as "${dealSummary.dealSignal}" based on its financial metrics and overall performance.
+Provide a fair, objective explanation, and end your response with the phrase: "Hence, it is a ${dealSummary.dealSignal} deal."
 
 Deal Metrics:
 - Revenue: $${financialData.revenue}M
@@ -674,9 +677,10 @@ Deal Metrics:
 - EV/EBITDA: ${dealSummary.evToEbitda}x (Sector Avg: ${dealSummary.sectorAvgEV}x)
 - Sector: ${sector}
 
-Provide a 2-3 sentence explanation of WHY this deal is categorized as "${dealSummary.dealSignal}". Focus on the key financial metrics that drove this rating. Be specific and concise.
+Provide a 2–3 sentence explanation of WHY this deal is categorized as "${dealSummary.dealSignal}". Focus on the key financial metrics that drove this rating. Be specific and concise.
 
-Return only the explanation text, no JSON.`;
+Return only the explanation text, no JSON.
+`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
@@ -691,14 +695,15 @@ Return only the explanation text, no JSON.`;
       }
     });
 
-    const explanation = response?.text 
-      || response?.candidates?.[0]?.content?.parts?.[0]?.text 
-      || `This ${dealSummary.dealSignal.toLowerCase()} deal rating reflects ${dealSummary.valuationStatus.toLowerCase()} valuation at ${dealSummary.evToEbitda}x EV/EBITDA (sector avg: ${dealSummary.sectorAvgEV}x) with leverage considerations.`;
+    const explanation =
+      response?.text ||
+      response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      `This ${dealSummary.dealSignal.toLowerCase()} deal rating reflects ${dealSummary.valuationStatus.toLowerCase()} valuation at ${dealSummary.evToEbitda}x EV/EBITDA (sector avg: ${dealSummary.sectorAvgEV}x) with leverage considerations.`;
 
     return explanation.trim();
-    
+
   } catch (error) {
-    console.error('Signal explanation generation error:', error.message);
+    console.error("Signal explanation generation error:", error.message);
     return `This ${dealSummary.dealSignal.toLowerCase()} deal rating reflects ${dealSummary.valuationStatus.toLowerCase()} valuation at ${dealSummary.evToEbitda}x EV/EBITDA (sector avg: ${dealSummary.sectorAvgEV}x).`;
   }
 };
@@ -1120,6 +1125,91 @@ app.get('/api/deals/:dealId', (req, res) => {
     return res.status(404).json({ error: 'Deal not found' });
   }
   res.json(deal);
+});
+
+//new block
+// Q&A endpoint for deal-specific questions
+app.post('/api/deals/:dealId/ask', async (req, res) => {
+  try {
+    const { dealId } = req.params;
+    const { question } = req.body;
+
+    if (!question || question.trim().length === 0) {
+      return res.status(400).json({ error: 'Question is required' });
+    }
+
+    const deal = dealsCache.get(dealId);
+    if (!deal) {
+      return res.status(404).json({ error: 'Deal not found' });
+    }
+
+    // Build context from deal data
+    const context = `
+Deal: ${deal.companyName}
+Sector: ${deal.industry}
+Summary: ${deal.summary}
+
+Financial Metrics:
+- Revenue: $${deal.metrics.revenue}M
+- EBITDA: $${deal.metrics.ebitda}M
+- Revenue Growth: ${deal.metrics.revenueGrowth}%
+- Profit Margin: ${deal.metrics.profitMargin}%
+- Debt Ratio: ${deal.metrics.debtRatio}
+- Current Ratio: ${deal.metrics.currentRatio}
+- EV/EBITDA: ${deal.metrics.evToEbitda}x
+- Debt-to-EBITDA: ${deal.metrics.debtToEbitda}x
+- Cash Flow: $${deal.metrics.cashFlow}M
+
+Deal Assessment:
+- Health Score: ${deal.dealSummary.healthScore}/100 (${deal.dealSummary.healthStatus})
+- Deal Signal: ${deal.dealSummary.dealSignal}
+- Valuation: ${deal.dealSummary.valuationStatus}
+- EV/EBITDA vs Sector: ${deal.dealSummary.evToEbitda}x vs ${deal.dealSummary.sectorAvgEV}x
+
+Key Risks:
+${deal.risks.map((r, i) => `${i + 1}. ${r}`).join('\n')}
+
+Key Opportunities:
+${deal.opportunities.map((o, i) => `${i + 1}. ${o}`).join('\n')}
+`;
+
+    const prompt = `You are a private equity analyst assistant. Answer the following question about this deal concisely in 1-2 sentences.
+
+${context}
+
+User Question: ${question}
+
+Provide a direct, specific answer based on the deal data above. Reference actual numbers and metrics where relevant.`;
+
+    console.log('Processing Q&A for deal:', dealId);
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: prompt }]
+        }
+      ],
+      config: {
+        candidateCount: 1
+      }
+    });
+
+    const answer = response?.text 
+      || response?.candidates?.[0]?.content?.parts?.[0]?.text 
+      || "I couldn't generate an answer. Please try rephrasing your question.";
+
+    res.json({ 
+      question,
+      answer: answer.trim(),
+      dealId 
+    });
+
+  } catch (error) {
+    console.error('Q&A error:', error);
+    res.status(500).json({ error: 'Failed to process question: ' + error.message });
+  }
 });
 
 // Get all deals for history
