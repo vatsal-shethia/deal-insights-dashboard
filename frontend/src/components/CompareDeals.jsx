@@ -16,6 +16,27 @@ function CompareDeals() {
   const [selectedDealB, setSelectedDealB] = useState('');
   const [error, setError] = useState('');
   const mainRef = useRef(null);
+  const [comparisonSummary, setComparisonSummary] = useState('');
+
+  const fetchComparisonSummary = async (dealA, dealB) => {
+    try {
+      const response = await fetch('/api/deals/compare', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dealA, dealB })
+      });
+      const data = await response.json();
+      setComparisonSummary(data.comparisonSummary);
+    } catch (err) {
+      console.error('Comparison summary error:', err);
+    }
+  };
+
+  // Trigger AI summary once both deals are loaded
+  useEffect(() => {
+    if (dealA && dealB) fetchComparisonSummary(dealA, dealB);
+  }, [dealA, dealB]);
+
 
   const handleExportPdf = async () => {
     try {
@@ -404,6 +425,25 @@ function CompareDeals() {
           <DealHeader deal={dealB} label="Deal B" />
         </div>
 
+        {/*new block*/}
+        {/* AI Investment Comparison Summary */}
+          {comparisonSummary && (
+            <div style={{
+              backgroundColor: 'white',
+              border: '1px solid #e5ddd5',
+              borderRadius: '12px',
+              padding: '2rem',
+              marginBottom: '2.5rem',
+              boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)'
+            }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '1rem' }}>
+                Investment Summary
+              </h2>
+              <p style={{ color: '#444', lineHeight: '1.7' }}>{comparisonSummary}</p>
+            </div>
+          )}
+
+
         <div style={{ 
           backgroundColor: 'white', 
           border: '1px solid #e5ddd5',
@@ -484,12 +524,12 @@ function CompareDeals() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2.5rem' }}>
+        {/* <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2.5rem' }}>
           <SummaryCard title="Deal A Summary" summary={dealA.summary} />
           <SummaryCard title="Deal B Summary" summary={dealB.summary} />
-        </div>
+        </div> */}
 
-        <div style={{ 
+        {/* <div style={{ 
           backgroundColor: 'white', 
           border: '1px solid #e5ddd5',
           borderRadius: '12px', 
@@ -554,7 +594,7 @@ function CompareDeals() {
               </ul>
             </div>
           </div>
-        </div>
+        </div> */}
 
         <div style={{ 
           backgroundColor: 'white', 

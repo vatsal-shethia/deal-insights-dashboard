@@ -1212,6 +1212,52 @@ Provide a direct, specific answer based on the deal data above. Reference actual
   }
 });
 
+//new block
+// New endpoint: Compare two deals and generate AI investment summary
+app.post('/api/deals/compare', async (req, res) => {
+  try {
+    const { dealA, dealB } = req.body;
+    if (!dealA || !dealB) {
+      return res.status(400).json({ error: 'Both deals are required for comparison' });
+    }
+
+    const prompt = `
+You are a private equity analyst comparing two deals. 
+Based on the given financial data and deal signals, determine which deal appears to be the better investment opportunity and explain why in 2–3 sentences.
+
+Deal A:
+- Company: ${dealA.companyName}
+- Deal Signal: ${dealA.dealSummary.dealSignal}
+- Health Score: ${dealA.dealSummary.healthScore}
+- Valuation: ${dealA.dealSummary.valuationStatus}
+- EV/EBITDA: ${dealA.dealSummary.evToEbitda}x
+- Sector Avg EV/EBITDA: ${dealA.dealSummary.sectorAvgEV}x
+
+Deal B:
+- Company: ${dealB.companyName}
+- Deal Signal: ${dealB.dealSummary.dealSignal}
+- Health Score: ${dealB.dealSummary.healthScore}
+- Valuation: ${dealB.dealSummary.valuationStatus}
+- EV/EBITDA: ${dealB.dealSummary.evToEbitda}x
+- Sector Avg EV/EBITDA: ${dealB.dealSummary.sectorAvgEV}x
+
+Explain which deal is more investible and why. End with:
+"Hence, ${companyName} is the better investment deal."`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }]
+    });
+
+    const text = response?.text || response?.candidates?.[0]?.content?.parts?.[0]?.text;
+    res.json({ comparisonSummary: text?.trim() || 'AI could not generate comparison summary.' });
+  } catch (error) {
+    console.error('Compare summary error:', error.message);
+    res.status(500).json({ error: 'Failed to generate comparison summary.' });
+  }
+});
+
+
 // Get all deals for history
 app.get('/api/deals', (req, res) => {
   const deals = dealsCache.get('allDeals') || [];
