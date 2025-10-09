@@ -1241,8 +1241,8 @@ Deal B:
 - EV/EBITDA: ${dealB.dealSummary.evToEbitda}x
 - Sector Avg EV/EBITDA: ${dealB.dealSummary.sectorAvgEV}x
 
-Explain which deal is more investible and why. End with:
-"Hence, ${companyName} is the better investment deal."`;
+Explain which deal is more investible and why. End with the sentence: "Hence, [Company Name] is the better investment deal."
+`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
