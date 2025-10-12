@@ -59,10 +59,7 @@ const uploadDeals = async (req, res) => {
     console.log('Starting AI analysis...');
     const aiAnalysis = await analyzeDealWithAI(fileContent, financialData, uploaded[0].originalname, sector);
     console.log('AI analysis complete');
-    
-    // Create quarterly breakdown (distribute totals across quarters)
-    const quarterlyBreakdown = [0.22, 0.24, 0.26, 0.28];
-    
+
     // Create complete deal data
     const dealData = {
       id: dealId,
@@ -77,15 +74,6 @@ const uploadDeals = async (req, res) => {
         mimetype: f.mimetype
       })),
       ...aiAnalysis,
-      revenueData: quarterlyBreakdown.map((pct, i) => ({
-        period: `Q${i+1} 2024`,
-        revenue: Math.round(financialData.revenue * pct)
-      })),
-      ebitdaData: quarterlyBreakdown.map((pct, i) => ({
-        period: `Q${i+1} 2024`,
-        ebitda: Math.round(financialData.ebitda * pct),
-        margin: (financialData.ebitda / financialData.revenue * 100).toFixed(1)
-      }))
     };
     
     // Store in memory

@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useParams, Link, useLocation } from 'react-router-dom';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 function Dashboard() {
   const { dealId } = useParams();
@@ -464,62 +463,10 @@ function Dashboard() {
             </div>
 
             {/* Revenue Trend Chart */}
-            <div style={{ 
-              backgroundColor: 'white', 
-              border: '1px solid #e5ddd5',
-              borderRadius: '12px', 
-              padding: '2rem',
-              boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)'
-            }}>
-              <h2 style={{ fontSize: '1.125rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '1.5rem', letterSpacing: '-0.01em' }}>
-                Revenue Trend
-              </h2>
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={dealData.revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5ddd5" />
-                  <XAxis dataKey="period" stroke="#999999" style={{ fontSize: '0.75rem' }} />
-                  <YAxis stroke="#999999" style={{ fontSize: '0.75rem' }} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e5ddd5',
-                      borderRadius: '6px',
-                      fontSize: '0.875rem'
-                    }}
-                  />
-                  <Line type="monotone" dataKey="revenue" stroke="#d4a574" strokeWidth={2} dot={{ fill: '#d4a574', r: 4 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            {/*removed block */}
 
             {/* EBITDA Chart */}
-            <div style={{ 
-              backgroundColor: 'white', 
-              border: '1px solid #e5ddd5',
-              borderRadius: '12px', 
-              padding: '2rem',
-              boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)'
-            }}>
-              <h2 style={{ fontSize: '1.125rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '1.5rem', letterSpacing: '-0.01em' }}>
-                EBITDA & Margin
-              </h2>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={dealData.ebitdaData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5ddd5" />
-                  <XAxis dataKey="period" stroke="#999999" style={{ fontSize: '0.75rem' }} />
-                  <YAxis stroke="#999999" style={{ fontSize: '0.75rem' }} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e5ddd5',
-                      borderRadius: '6px',
-                      fontSize: '0.875rem'
-                    }}
-                  />
-                  <Bar dataKey="ebitda" fill="#b88a5f" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            {/*removed block */}
 
           </div>
         </div>
