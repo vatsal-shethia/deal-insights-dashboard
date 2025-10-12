@@ -1,206 +1,102 @@
-                                            💼 Deal Insights Dashboard
+# 💼 Deal Insights Dashboard
 
-                                    AI-Powered Financial Deal Analysis Platform
+## AI-Powered Financial Deal Analysis Platform
 
-🧠 Overview
+---
 
-Deal Insights Dashboard is an intelligent analytics platform that evaluates private equity and corporate investment opportunities.
-It automatically parses financial reports (PDF or CSV), extracts key metrics, and uses Google Gemini AI to generate investor-grade insights — including deal quality, valuation signals, and financial health assessments.
+## 🧠 Overview
 
-Built for finance professionals, analysts, and developers, the dashboard transforms raw company data into actionable investment intelligence.
+The **Deal Insights Dashboard** is an intelligent analytics platform designed to dramatically accelerate the evaluation of **private equity** and **corporate investment opportunities**.
 
-✨ Core Highlights
+It automatically parses complex financial reports (PDF or CSV), extracts all key metrics, and leverages the **Google Gemini AI** to generate investor-grade insights—including deal quality assessments, critical valuation signals, and comprehensive financial health reports.
 
-📊 Smart Financial Parsing – Reads complex PDFs and CSVs with flexible header recognition and automatic unit conversion.
+Built for **finance professionals, analysts, and developers**, this platform transforms raw company data into actionable, high-precision investment intelligence.
 
-🧮 Valuation Intelligence – Calculates EV/EBITDA, Debt Ratios, Margins, and assigns health scores vs. sector benchmarks.
+---
 
-🤖 AI Deal Assessment – Uses Gemini to explain why a deal is “Attractive,” “Neutral,” or “Cautious.”
+## ✨ Core Highlights
 
-🧩 Deal Comparison Engine – Compares two companies and identifies which is the better investment, with reasoning.
+| Feature | Description |
+| :--- | :--- |
+| **📊 Smart Financial Parsing** | Reads complex PDFs and CSVs with flexible header recognition, automatic unit conversion, and intelligent normalization. |
+| **🧮 Valuation Intelligence** | Calculates key ratios (EV/EBITDA, Debt Ratios, Margins) and assigns financial health scores vs. sector benchmarks. |
+| **🤖 AI Deal Assessment** | Uses **Gemini** to provide a concise, reasoned assessment classifying the deal as “**Attractive**,” “**Neutral**,” or “**Cautious**.” |
+| **🧩 Deal Comparison Engine** | Compares two companies head-to-head and identifies the better investment, complete with detailed reasoning. |
+| **💬 AI Chat Assistant** | Enables natural language Q&A for deep, deal-specific analysis and quick information retrieval. |
+| **🧠 Resilient Logic** | Intelligently fills missing critical financial metrics (e.g., EBITDA-based estimations) to ensure a complete analysis. |
 
-💬 AI Chat Assistant – Enables deal-specific natural language Q&A.
+---
 
-🧠 Resilient Logic – Fills missing financial metrics intelligently (e.g., EBITDA-based estimations).
+## ⚙️ How It Works
 
-🧰 Tech Stack
-Layer	Technology
-Frontend	React.js + Tailwind CSS
-Backend	Node.js + Express
-AI Engine	Google Gemini (via @google/genai)
-Parsing	pdf-parse, csv-parser, multer
-Storage	In-memory cache (DB-ready architecture)
-🏗️ Project Architecture
-deal-insights-dashboard/
-│
-├── backend/
-│   ├── controllers/       # Core logic for analysis, comparison, chat
-│   ├── middlewares/       # Upload, validation, error handling
-│   ├── routes/            # Organized API endpoints
-│   ├── utils/             # Metric extraction & calculations
-│   ├── server.js          # Express entry point
-│
-├── frontend/
-│   ├── src/
-│   │   ├── pages/         # Dashboard, Compare, History
-│   │   ├── components/    # Reusable UI elements
-│   │   ├── hooks/
-│   │   └── App.jsx
-│
-└── README.md
+1.  **File Upload:** A company's PDF or CSV is uploaded. The backend validates, parses, and normalizes the raw data.
+2.  **Metric Extraction:** Core financials (Revenue, EBITDA, Liabilities) are extracted, and key ratios are calculated: Debt-to-EBITDA, Profit Margin, Current Ratio, EV/EBITDA.
+3.  **AI Insight Generation:** **Gemini** analyzes the complete financial profile to provide an **Executive Summary**, **Key Risks & Opportunities**, a final **Deal Signal**, and a detailed **Explanation** (e.g., "Why this deal is Attractive").
+4.  **Interactive Dashboard:** Metrics, charts, and AI insights are presented in a clean, investor-style UI.
+5.  **Deal Comparison:** Two deals are compared, with the AI summarizing which is more investible and why.
 
-📁 Supported File Types
-Type	Format	Max Size	Notes
-CSV	.csv	10 MB	Accepts multiple header formats, currency symbols, units (M, B, %)
-PDF	.pdf	10 MB	Parses text-based reports and financial summaries
-📊 CSV Header Flexibility
+---
 
-Your parser intelligently normalizes messy financial headers.
+## 📁 Supported File Types & Flexibility
 
-Metric	Accepted Headers
-Revenue	revenue, sales, total_revenue, net_sales
-EBITDA	ebitda, earnings, operating_income, op_profit
-Net Income	net_income, profit, net_earnings
-Assets	total_assets, assets
-Liabilities	total_liabilities, debt, total_debt
-Cash Flow	cash_flow, operating_cash_flow, ocf
+### Format & Specifications
 
-Also handles:
+| Type | Format | Max Size | Notes |
+| :--- | :--- | :--- | :--- |
+| **CSV** | `.csv` | 10 MB | Accepts multiple header formats, currency symbols, and units (M, B, %). |
+| **PDF** | `.pdf` | 10 MB | Parses text-based reports and semi-structured financial summaries. |
 
-Currency symbols ($, €, ₹)
+### CSV Header Flexibility
 
-Brackets for negatives: (500) → -500
+The parser intelligently normalizes messy financial headers to a standard format:
 
-Units: 1.25M / 2B / 300K
+| Metric | Accepted Headers |
+| :--- | :--- |
+| **Revenue** | `revenue`, `sales`, `total_revenue`, `net_sales` |
+| **EBITDA** | `ebitda`, `earnings`, `operating_income`, `op_profit` |
+| **Net Income** | `net_income`, `profit`, `net_earnings` |
+| **Assets** | `total_assets`, `assets` |
+| **Liabilities** | `total_liabilities`, `debt`, `total_debt` |
+| **Cash Flow** | `cash_flow`, `operating_cash_flow`, `ocf` |
 
-Percentages: 12.5% → 12.5
+**Also Handles:** Currency symbols ($\text{\$}$, $\text{€}$, $\text{₹}$), brackets for negatives ($(500) \rightarrow -500$), Units ($\text{1.25M / 2B / 300K}$), and Percentages ($\text{12.5\%} \rightarrow 12.5$).
 
-🧾 PDF Pattern Recognition
+### PDF Pattern Recognition
 
-The AI recognizes real-world financial text patterns like:
+The AI is trained to recognize real-world financial text patterns in unstructured documents, such as:
 
-Total Revenue: $3.25 billion
-EBITDA stood at $680M
-Net Income reached $410 million
-Debt-to-EBITDA ratio: 1.8x
-Cash Flow from Operations: $520M
-Revenue Growth: 12%
+* `Total Revenue: $3.25 billion`
+* `EBITDA stood at $680M`
+* `Debt-to-EBITDA ratio: 1.8x`
+* `Revenue Growth: 12%`
 
+---
 
-It supports text-based and semi-structured PDFs — ideal for investor reports or company presentations.
+## 🔍 Example AI Output
 
-⚙️ How It Works
+| Section | Content |
+| :--- | :--- |
+| **Deal Summary** | Apex Materials Inc. shows consistent revenue growth with $\text{\$3.2B}$ in sales and a $\text{14\%}$ YoY increase. Strong EBITDA margins ($\text{18\%}$) and conservative leverage ($\text{1.7x Debt/EBITDA}$) indicate robust fundamentals. |
+| **Deal Signal** | **Attractive** |
 
-File Upload
-Upload a company’s PDF or CSV.
-The backend validates, parses, and normalizes the data.
+### Minimum Data Required
 
-Metric Extraction
-Extracts financials like Revenue, EBITDA, Liabilities, and calculates ratios:
+| Requirement | Description |
+| :--- | :--- |
+| **✅ Revenue** | Mandatory for analysis. |
+| **✅ Any 1 additional metric** | EBITDA, Assets, or Liabilities. |
+| **💡 Recommended** | Net Income, Cash Flow, and Growth Rate provide the most comprehensive analysis. |
 
-Debt-to-EBITDA
+---
 
-Profit Margin
+## 🧰 Tech Stack
 
-Current Ratio
+| Layer | Technology |
+| :--- | :--- |
+| **Frontend** | `React.js` + `Tailwind CSS` |
+| **Backend** | `Node.js` + `Express` |
+| **AI Engine** | **Google Gemini** (via `@google/genai`) |
+| **Parsing** | `pdf-parse`, `csv-parser`, `multer` |
+| **Storage** | In-memory cache (DB-ready architecture) |
 
-EV/EBITDA
-
-AI Insight Generation
-Gemini analyzes the financial profile and provides:
-
-Executive Summary
-
-Key Risks & Opportunities
-
-Deal Signal & Health Score
-
-Explanation: “Why this deal is Attractive”
-
-Interactive Dashboard
-Displays metrics, charts, and AI insights — all in a clean, investor-style UI.
-
-Deal Comparison
-Compare two deals; Gemini summarizes which is more investible and why.
-
-🔍 Example AI Output
-
-Deal Summary
-
-Apex Materials Inc. shows consistent revenue growth with $3.2B in sales and a 14% YoY increase.
-Strong EBITDA margins (18%) and conservative leverage (1.7x Debt/EBITDA) indicate robust fundamentals.
-Hence, it is an Attractive deal.
-
-🧩 API Endpoints
-Method	Endpoint	Purpose
-POST	/api/deals/upload	Upload and analyze files
-POST	/api/deals/:dealId/ask	Ask deal-specific AI questions
-POST	/api/deals/compare	Compare two deals
-GET	/api/deals	Retrieve all uploaded deals
-GET	/api/deals/:dealId	Get a specific deal
-GET	/api/health	Check API health and configuration
-🧠 Installation Guide
-Clone the Repository
-git clone https://github.com/yourusername/deal-insights-dashboard.git
-cd deal-insights-dashboard
-
-Setup Backend
-cd backend
-npm install
-
-
-Add a .env file:
-
-PORT=5000
-GEMINI_API_KEY=your_google_gemini_api_key
-
-
-Start the server:
-
-npm start
-
-Setup Frontend
-cd frontend
-npm install
-npm run dev
-
-🔒 Minimum Data Required
-Requirement	Description
-✅ Revenue	Mandatory
-✅ Any 1 additional metric	EBITDA, Assets, or Liabilities
-💡 Recommended	Net Income, Cash Flow, Growth Rate
-🌐 Ideal Use Cases
-
-Private Equity & Venture Capital Analysis
-
-Financial Due Diligence Automation
-
-Corporate Strategy & M&A Evaluation
-
-Finance-focused AI Research Projects
-
-Educational Finance & Valuation Demonstrations
-
-👨‍💻 Developer
-
-Vatsal Shethia
-Software Engineer | Fintech & AI Enthusiast
-🔗 LinkedIn
- • GitHub
-
-🏁 Future Enhancements
-
- Integrate Database (MongoDB / PostgreSQL)
-
- Add Authentication and User Profiles
-
- Export AI Reports as PDFs
-
- OCR Layer for Scanned PDFs
-
- Benchmarking Across Multiple Deals
-
-🪙 Vision
-
-“To bridge the gap between raw financial data and intelligent investment insights —
-empowering analysts with clarity, speed, and AI-driven precision.”
+### 🏗️ Project Architecture
