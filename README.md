@@ -1,6 +1,5 @@
-# 💼 Deal Insights Dashboard
-
-## AI-Powered Financial Deal Analysis Platform
+<h1 align="center">💼 Deal Insights Dashboard</h1>
+<h2 align="center">AI-Powered Financial Deal Analysis Platform</h2>
 
 ---
 
@@ -100,3 +99,94 @@ The AI is trained to recognize real-world financial text patterns in unstructure
 | **Storage** | In-memory cache (DB-ready architecture) |
 
 ### 🏗️ Project Architecture
+
+deal-insights-dashboard/
+├── backend/
+│   ├── controllers/      # Core logic for analysis, comparison, chat
+│   ├── middlewares/      # Upload, validation, error handling
+│   ├── routes/           # Organized API endpoints
+│   ├── utils/            # Metric extraction & calculations
+│   └── server.js         # Express entry point
+│
+├── frontend/
+│   └── src/
+│       ├── pages/        # Dashboard, Compare, History views
+│       ├── components/   # Reusable UI elements
+│       └── App.jsx
+│
+└── README.md
+
+
+---
+
+## 🧠 Installation Guide
+
+### 1. Clone the Repository
+
+```bash
+git clone [https://github.com/yourusername/deal-insights-dashboard.git](https://github.com/yourusername/deal-insights-dashboard.git)
+cd deal-insights-dashboard
+2. Setup Backend
+Bash
+
+cd backend
+npm install
+Create a .env file in the backend/ directory:
+
+Code snippet
+
+PORT=5000
+GEMINI_API_KEY=your_google_gemini_api_key
+Start the server:
+
+Bash
+
+npm start
+3. Setup Frontend
+Bash
+
+cd ../frontend
+npm install
+npm run dev
+🧩 API Endpoints
+Method	Endpoint	Purpose
+POST	/api/deals/upload	Upload and analyze a financial file.
+POST	/api/deals/:dealId/ask	Ask deal-specific AI questions.
+POST	/api/deals/compare	Compare two deals side-by-side.
+GET	/api/deals	Retrieve all uploaded deal summaries.
+GET	/api/deals/:dealId	Get a specific deal's full analysis.
+GET	/api/health	Check API health and configuration.
+
+Export to Sheets
+🌐 Ideal Use Cases
+Private Equity & Venture Capital Analysis
+
+Financial Due Diligence Automation
+
+Corporate Strategy & M&A Evaluation
+
+Finance-focused AI Research Projects
+
+Educational Finance & Valuation Demonstrations
+
+🏁 Future Enhancements
+Integrate a persistent Database (MongoDB / PostgreSQL)
+
+Add Authentication and User Profiles
+
+Export AI Reports as shareable PDFs
+
+OCR Layer for processing image-based/scanned PDFs
+
+Benchmarking Across Multiple Deals in a portfolio view
+
+👨‍💻 Developer
+Vatsal Shethia
+Software Engineer | Fintech & AI Enthusiast
+
+🔗 LinkedIn Profile
+
+• GitHub Profile
+
+🪙 Vision
+“To bridge the gap between raw financial data and intelligent investment insights—empowering analysts with clarity, speed, and AI-driven precision.”
