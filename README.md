@@ -58,7 +58,7 @@ The parser intelligently normalizes messy financial headers to a standard format
 | **Liabilities** | `total_liabilities`, `debt`, `total_debt` |
 | **Cash Flow** | `cash_flow`, `operating_cash_flow`, `ocf` |
 
-**Also Handles:** Currency symbols ($\text{\$}$, $\text{€}$, $\text{₹}$), brackets for negatives ($(500) \rightarrow -500$), Units ($\text{1.25M / 2B / 300K}$), and Percentages ($\text{12.5\%} \rightarrow 12.5$).
+**Also Handles:** Currency symbols ($\text{$}$, $\text{€}$, $\text{₹}$), brackets for negatives ($(500) \rightarrow -500$), Units ($\text{1.25M / 2B / 300K}$), and Percentages ($\text{12.5\%} \rightarrow 12.5$).
 
 ### PDF Pattern Recognition
 
@@ -126,7 +126,9 @@ deal-insights-dashboard/
 ```bash
 git clone [https://github.com/yourusername/deal-insights-dashboard.git](https://github.com/yourusername/deal-insights-dashboard.git)
 cd deal-insights-dashboard
+
 2. Setup Backend
+
 Bash
 
 cd backend
@@ -142,7 +144,9 @@ Start the server:
 Bash
 
 npm start
+
 3. Setup Frontend
+
 Bash
 
 cd ../frontend
@@ -157,7 +161,6 @@ GET	/api/deals	Retrieve all uploaded deal summaries.
 GET	/api/deals/:dealId	Get a specific deal's full analysis.
 GET	/api/health	Check API health and configuration.
 
-Export to Sheets
 🌐 Ideal Use Cases
 Private Equity & Venture Capital Analysis
 
@@ -183,10 +186,6 @@ Benchmarking Across Multiple Deals in a portfolio view
 👨‍💻 Developer
 Vatsal Shethia
 Software Engineer | Fintech & AI Enthusiast
-
-🔗 LinkedIn Profile
-
-• GitHub Profile
 
 🪙 Vision
 “To bridge the gap between raw financial data and intelligent investment insights—empowering analysts with clarity, speed, and AI-driven precision.”
