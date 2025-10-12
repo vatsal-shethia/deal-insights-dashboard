@@ -90,25 +90,47 @@ const parseCSV = (filePath) => {
 //new block
 const parsePDF = async (filePath) => {
   const dataBuffer = fs.readFileSync(filePath);
+  
   try {
-    const pdfData = await pdfParse(dataBuffer);
+    const pdfData = await pdfParse(dataBuffer, {
+      // Enable max extraction
+      max: 0,  // No page limit
+      version: 'v2.0.550'
+    });
+    
     if (!pdfData.text || pdfData.text.trim().length < 10) {
       throw new Error("Empty PDF text");
     }
+    
+    console.log(`✓ PDF parsed: ${pdfData.numpages} pages, ${pdfData.text.length} chars`);
+    
+    // Try to detect table structures (simple heuristic)
+    const hasTableStructure = /[\t\|]{2,}/.test(pdfData.text) || 
+                              pdfData.text.split('\n').some(line => 
+                                (line.match(/\s{3,}/g) || []).length > 3
+                              );
+    
+    if (hasTableStructure) {
+      console.log('⚠️  Detected table structure - may need specialized parsing');
+      // Future: Add tabula-js or pdf-table-extractor here
+    }
+    
     return pdfData.text;
+    
   } catch (err) {
     console.error("⚠️ PDF parse failed:", err.message);
-    // Fallback: basic UTF-8 text attempt
+    
+    // Fallback: raw UTF-8 extraction
     try {
       const rawText = dataBuffer.toString("utf8");
-      console.warn("Using raw text fallback");
+      console.warn("Using raw text fallback (may be garbled)");
       return rawText;
     } catch {
+      console.error("❌ Complete PDF extraction failure");
       return "";
     }
   }
 };
-
 // const parsePDF = async (filePath) => {
 //   const dataBuffer = fs.readFileSync(filePath);
 //   const pdfData = await pdfParse(dataBuffer);
@@ -131,6 +153,44 @@ const extractFinancialDataSmart = (content) => {
   return null;
 };
 
+//new block
+/**
+ * Safely parse numeric values from strings with various formats
+ * Handles: "1,000", "$1000", "1.5M", "2.3B", "(500)" (negative), etc.
+ */
+const parseFinancialNumber = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+  
+  // Convert to string and clean
+  let str = String(value)
+    .trim()
+    .replace(/[\$€£¥,\s]/g, '')  // Remove currency symbols, commas, spaces
+    .replace(/[()]/g, '-');       // Convert parentheses to negative
+  
+  // Handle percentage (convert to decimal if needed for margins)
+  const isPercentage = str.includes('%');
+  str = str.replace('%', '');
+  
+  // Handle unit multipliers (M = million, B = billion, K = thousand)
+  let multiplier = 1;
+  if (/[mM]$/i.test(str)) {
+    multiplier = 1;  // Already in millions
+    str = str.replace(/[mM]$/i, '');
+  } else if (/[bB]$/i.test(str)) {
+    multiplier = 1000;  // Convert billions to millions
+    str = str.replace(/[bB]$/i, '');
+  } else if (/[kK]$/i.test(str)) {
+    multiplier = 0.001;  // Convert thousands to millions
+    str = str.replace(/[kK]$/i, '');
+  }
+  
+  const num = parseFloat(str);
+  if (isNaN(num)) return null;
+  
+  return isPercentage ? num : num * multiplier;
+};
+
+
 // Extract from CSV data
 //new block
 const extractFromCSV = (csvData) => {
@@ -140,14 +200,42 @@ const extractFromCSV = (csvData) => {
   console.log('CSV Sample Row:', csvData[0]);
 
   // Normalize headers
+  //new block
   const normalizedData = csvData.map(row => {
-    const normalized = {};
-    Object.keys(row).forEach(key => {
-      const normalizedKey = key.trim().toLowerCase();
-      normalized[normalizedKey] = row[key];
-    });
-    return normalized;
+  const normalized = {};
+  Object.keys(row).forEach(key => {
+    // Step 1: Clean and normalize header
+    const normalizedKey = key
+      .trim()
+      .toLowerCase()
+      .replace(/[\$%\(\)\[\]\{\}]/g, '')           // Remove currency/percentage symbols & brackets
+      .replace(/\b(in\s+)?(millions?|thousands?|m|k|usd|dollars?)\b/gi, '') // Remove unit descriptors
+      .replace(/[^a-z0-9\s]/g, '')                  // Remove remaining special chars
+      .replace(/\s+/g, '_')                         // Replace spaces with underscores
+      .replace(/^_+|_+$/g, '');                     // Trim leading/trailing underscores
+    
+    normalized[normalizedKey] = row[key];
   });
+  return normalized;
+});
+console.log('📊 CSV Extraction Debug:');
+console.log('  - Original headers:', Object.keys(csvData[0]));
+console.log('  - Normalized headers:', Object.keys(normalizedData[0]));
+console.log('  - Sample row:', normalizedData[0]);
+  // const normalizedData = csvData.map(row => {
+  //   const normalized = {};
+  //   Object.keys(row).forEach(key => {
+  //     //new block
+  //     const normalizedKey = key
+  //       .trim()
+  //       .toLowerCase()
+  //       .replace(/[^a-z0-9 ]/g, '')    // remove symbols like $, %, (), etc.
+  //       .replace(/\s+/g, '_');          // replace spaces with underscores
+  //     // const normalizedKey = key.trim().toLowerCase();
+  //     normalized[normalizedKey] = row[key];
+  //   });
+  //   return normalized;
+  // });
 
   // Calculate totals
   let totalRevenue = 0;
@@ -159,25 +247,74 @@ const extractFromCSV = (csvData) => {
   let currentLiabilities = 0;
   let cashFlow = 0;
 
+  //new block
   normalizedData.forEach(row => {
-    const revenue = parseFloat(row.revenue || row.sales || row['total revenue'] || 0);
-    const ebitda = parseFloat(row.ebitda || row.earnings || row['operating income'] || 0);
-    const netIncome = parseFloat(row['net income'] || row['net profit'] || row.profit || 0);
-    const assets = parseFloat(row['total assets'] || row.assets || 0);
-    const liabilities = parseFloat(row['total liabilities'] || row.liabilities || row.debt || 0);
-    const curAssets = parseFloat(row['current assets'] || 0);
-    const curLiabilities = parseFloat(row['current liabilities'] || 0);
-    const cash = parseFloat(row['cash flow'] || row['operating cash flow'] || 0);
+  // Try multiple possible column names for each metric
+  const revenue = parseFinancialNumber(
+    row.revenue || row.sales || row.total_revenue || 
+    row.total_sales || row.revenues || row.net_sales || 0
+  );
+  
+  const ebitda = parseFinancialNumber(
+    row.ebitda || row.earnings || row.operating_income || 
+    row.operating_profit || row.op_income || row.ebit || 0
+  );
+  
+  const netIncome = parseFinancialNumber(
+    row.net_income || row.net_profit || row.profit || 
+    row.net_earnings || row.income || row.earnings || 0
+  );
+  
+  const assets = parseFinancialNumber(
+    row.total_assets || row.assets || row.total_asset || 0
+  );
+  
+  const liabilities = parseFinancialNumber(
+    row.total_liabilities || row.liabilities || row.debt || 
+    row.total_debt || row.total_liability || row.long_term_debt || 0
+  );
+  
+  const curAssets = parseFinancialNumber(
+    row.current_assets || row.current_asset || 0
+  );
+  
+  const curLiabilities = parseFinancialNumber(
+    row.current_liabilities || row.current_liability || 0
+  );
+  
+  const cash = parseFinancialNumber(
+    row.cash_flow || row.operating_cash_flow || 
+    row.cashflow || row.ocf || row.cash || 0
+  );
 
-    if (!isNaN(revenue)) totalRevenue += revenue;
-    if (!isNaN(ebitda)) totalEbitda += ebitda;
-    if (!isNaN(netIncome)) totalNetIncome += netIncome;
-    if (!isNaN(assets)) totalAssets += assets;
-    if (!isNaN(liabilities)) totalLiabilities += liabilities;
-    if (!isNaN(curAssets)) currentAssets += curAssets;
-    if (!isNaN(curLiabilities)) currentLiabilities += curLiabilities;
-    if (!isNaN(cash)) cashFlow += cash;
-  });
+  if (revenue) totalRevenue += revenue;
+  if (ebitda) totalEbitda += ebitda;
+  if (netIncome) totalNetIncome += netIncome;
+  if (assets) totalAssets += assets;
+  if (liabilities) totalLiabilities += liabilities;
+  if (curAssets) currentAssets += curAssets;
+  if (curLiabilities) currentLiabilities += curLiabilities;
+  if (cash) cashFlow += cash;
+});
+  // normalizedData.forEach(row => {
+  //   const revenue = parseFloat(row.revenue || row.sales || row['total revenue'] || 0);
+  //   const ebitda = parseFloat(row.ebitda || row.earnings || row['operating income'] || 0);
+  //   const netIncome = parseFloat(row['net income'] || row['net profit'] || row.profit || 0);
+  //   const assets = parseFloat(row['total assets'] || row.assets || 0);
+  //   const liabilities = parseFloat(row['total liabilities'] || row.liabilities || row.debt || 0);
+  //   const curAssets = parseFloat(row['current assets'] || 0);
+  //   const curLiabilities = parseFloat(row['current liabilities'] || 0);
+  //   const cash = parseFloat(row['cash flow'] || row['operating cash flow'] || 0);
+
+  //   if (!isNaN(revenue)) totalRevenue += revenue;
+  //   if (!isNaN(ebitda)) totalEbitda += ebitda;
+  //   if (!isNaN(netIncome)) totalNetIncome += netIncome;
+  //   if (!isNaN(assets)) totalAssets += assets;
+  //   if (!isNaN(liabilities)) totalLiabilities += liabilities;
+  //   if (!isNaN(curAssets)) currentAssets += curAssets;
+  //   if (!isNaN(curLiabilities)) currentLiabilities += curLiabilities;
+  //   if (!isNaN(cash)) cashFlow += cash;
+  // });
 
   // Estimates if missing
   if (totalNetIncome === 0 && totalEbitda > 0) {
@@ -285,52 +422,196 @@ const extractFromCSV = (csvData) => {
 
 // Extract from text (PDF content)
 //new block
+/**
+ * Extract financial data from table-like text structures
+ * Handles PDFs where metrics are in tables/rows with numbers in columns
+ */
+const extractFromTableText = (text) => {
+  const lines = text.split('\n');
+  const data = {
+    revenue: null,
+    ebitda: null,
+    net_income: null,
+    total_assets: null,
+    total_liabilities: null,
+    cash_flow: null,
+    revenueGrowth: null
+  };
+
+  // Look for table rows with metric names followed by numbers
+  lines.forEach(line => {
+    const lowerLine = line.toLowerCase();
+    
+    // Extract numbers from the line (handles formats like "4,850" or "5.42")
+    const numbers = line.match(/[\d,]+\.?\d*/g);
+    
+    if (!numbers || numbers.length === 0) return;
+    
+    // Helper to get the most relevant number (usually the latest/rightmost)
+    const getLatestValue = () => {
+      // Try to find a number that's not a percentage or year
+      const validNumbers = numbers.filter(n => {
+        const num = parseFloat(n.replace(/,/g, ''));
+        return num > 0 && num < 100000; // Reasonable range for our metrics
+      });
+      return validNumbers.length > 0 ? validNumbers[validNumbers.length - 1] : numbers[0];
+    };
+
+    // Revenue patterns
+    if (/total\s+revenue|revenue\s*\(/i.test(lowerLine) && !data.revenue) {
+      const value = getLatestValue();
+      data.revenue = parseFinancialNumber(value);
+      
+      // Check if it's in billions (by looking for ($B) or "billion" in the line)
+      if (/\(\$b\)|billion/i.test(lowerLine)) {
+        data.revenue = data.revenue * 1000; // Convert to millions
+      }
+    }
+    
+    // EBITDA patterns
+    if (/ebitda/i.test(lowerLine) && !data.ebitda) {
+      const value = getLatestValue();
+      data.ebitda = parseFinancialNumber(value);
+      
+      if (/\(\$b\)|billion/i.test(lowerLine)) {
+        data.ebitda = data.ebitda * 1000;
+      }
+    }
+    
+    // Net Income patterns
+    if (/net\s+income/i.test(lowerLine) && !data.net_income) {
+      const value = getLatestValue();
+      data.net_income = parseFinancialNumber(value);
+      
+      if (/\(\$b\)|billion/i.test(lowerLine)) {
+        data.net_income = data.net_income * 1000;
+      }
+    }
+    
+    // Total Assets patterns
+    if (/total\s+assets/i.test(lowerLine) && !data.total_assets) {
+      const value = getLatestValue();
+      data.total_assets = parseFinancialNumber(value);
+      
+      if (/\(\$b\)|billion/i.test(lowerLine)) {
+        data.total_assets = data.total_assets * 1000;
+      }
+    }
+    
+    // Total Liabilities patterns
+    if (/total\s+liabilities/i.test(lowerLine) && !data.total_liabilities) {
+      const value = getLatestValue();
+      data.total_liabilities = parseFinancialNumber(value);
+      
+      if (/\(\$b\)|billion/i.test(lowerLine)) {
+        data.total_liabilities = data.total_liabilities * 1000;
+      }
+    }
+    
+    // Cash Flow patterns
+    if (/cash\s+flow/i.test(lowerLine) && !data.cash_flow) {
+      const value = getLatestValue();
+      data.cash_flow = parseFinancialNumber(value);
+      
+      if (/\(\$b\)|billion/i.test(lowerLine)) {
+        data.cash_flow = data.cash_flow * 1000;
+      }
+    }
+    
+    // Revenue Growth patterns
+    if (/revenue\s+growth|yoy/i.test(lowerLine) && !data.revenueGrowth) {
+      // Look for percentage values
+      const percentMatch = line.match(/([\d.]+)%/);
+      if (percentMatch) {
+        data.revenueGrowth = parseFloat(percentMatch[1]);
+      }
+    }
+  });
+
+  // Check if we found any data
+  const hasData = Object.values(data).some(v => v !== null);
+  
+  if (hasData) {
+    console.log('✓ Extracted from table structure:', data);
+    return data;
+  }
+  
+  return null;
+};
+//new block
 const extractFromText = (text) => {
+  // FIRST: Try table-based extraction (for structured PDFs)
+  const tableData = extractFromTableText(text);
+  if (tableData && tableData.revenue) {
+    console.log('✓ Used table-based extraction');
+    
+    // Apply estimates for missing metrics
+    if (!tableData.net_income && tableData.ebitda) {
+      tableData.net_income = tableData.ebitda * 0.6;
+    }
+    if (!tableData.cash_flow && tableData.ebitda) {
+      tableData.cash_flow = tableData.ebitda * 0.65;
+    }
+    if (!tableData.current_assets && tableData.total_assets) {
+      tableData.current_assets = tableData.total_assets * 0.35;
+    }
+    if (!tableData.current_liabilities && tableData.total_liabilities) {
+      tableData.current_liabilities = tableData.total_liabilities * 0.4;
+    }
+    
+    tableData.dataSource = 'text-table';
+    return tableData;
+  }
+  
+  // FALLBACK: Try regex pattern-based extraction
+  console.log('⚠️ Table extraction failed, trying pattern matching...');
   const lowerText = text.toLowerCase();
   
 //new block (for beter parsing)
+// REPLACE THE patterns OBJECT WITH THIS ENHANCED VERSION:
 const patterns = {
   revenue: [
-    /(?:total\s+)?revenue[:\s$]*([\d.,]+)/i,
-    /revenue\s+([\d.,]+)/i,
-    /(?:total\s+)?sales[:\s$]*([\d.,]+)/i
+    /(?:total\s+)?(?:net\s+)?revenue[:\s\-]*[\$€£¥]?\s*([\d,]+\.?\d*)\s*(?:million|m\b|billion|b\b)?/gi,
+    /(?:total\s+)?(?:net\s+)?sales[:\s\-]*[\$€£¥]?\s*([\d,]+\.?\d*)\s*(?:million|m\b|billion|b\b)?/gi,
+    /revenues?[:\s]+[\$€£¥]?\s*([\d,]+\.?\d*)/gi
   ],
   ebitda: [
-    /ebitda[:\s$]*([\d.,]+)/i,
-    /ebitda\s+([\d.,]+)/i,
-    /earnings[:\s$]*([\d.,]+)/i
+    /ebitda[:\s\-]*[\$€£¥]?\s*([\d,]+\.?\d*)\s*(?:million|m\b|billion|b\b)?/gi,
+    /earnings?\s+before[:\s\-]*[\$€£¥]?\s*([\d,]+\.?\d*)/gi,
+    /operating\s+(?:income|profit)[:\s\-]*[\$€£¥]?\s*([\d,]+\.?\d*)/gi
   ],
   netIncome: [
-    /net\s+income[:\s$]*([\d.,]+)/i,
-    /net\s+profit[:\s$]*([\d.,]+)/i,
-    /income\s+([\d.,]+)/i
+    /net\s+(?:income|profit|earnings?)[:\s\-]*[\$€£¥]?\s*([\d,]+\.?\d*)\s*(?:million|m\b|billion|b\b)?/gi,
+    /(?:after[\-\s]tax\s+)?income[:\s\-]*[\$€£¥]?\s*([\d,]+\.?\d*)/gi
   ],
   totalAssets: [
-    /total\s+assets[:\s$]*([\d.,]+)/i,
-    /assets\s+([\d.,]+)/i
+    /total\s+assets[:\s\-]*[\$€£¥]?\s*([\d,]+\.?\d*)\s*(?:million|m\b|billion|b\b)?/gi,
+    /assets[:\s]+[\$€£¥]?\s*([\d,]+\.?\d*)\s*(?:million|m\b|billion|b\b)?/gi
   ],
   totalLiabilities: [
-    /total\s+liabilities[:\s$]*([\d.,]+)/i,
-    /liabilities\s+([\d.,]+)/i
+    /total\s+(?:liabilities|debt)[:\s\-]*[\$€£¥]?\s*([\d,]+\.?\d*)\s*(?:million|m\b|billion|b\b)?/gi,
+    /(?:long[\-\s]term\s+)?debt[:\s\-]*[\$€£¥]?\s*([\d,]+\.?\d*)/gi
   ],
   currentAssets: [
-    /current\s+assets[:\s$]*([\d.,]+)/i
+    /current\s+assets[:\s\-]*[\$€£¥]?\s*([\d,]+\.?\d*)\s*(?:million|m\b|billion|b\b)?/gi
   ],
   currentLiabilities: [
-    /current\s+liabilities[:\s$]*([\d.,]+)/i
+    /current\s+liabilities[:\s\-]*[\$€£¥]?\s*([\d,]+\.?\d*)\s*(?:million|m\b|billion|b\b)?/gi
   ],
   cashFlow: [
-    /(?:operating\s+)?cash\s*flow[:\s$]*([\d.,]+)/i,
-    /cash\s*flow\s+([\d.,]+)/i
+    /(?:operating\s+)?cash\s*flow[:\s\-]*[\$€£¥]?\s*([\d,]+\.?\d*)\s*(?:million|m\b|billion|b\b)?/gi,
+    /(?:free\s+)?cash\s*flow[:\s\-]*[\$€£¥]?\s*([\d,]+\.?\d*)/gi
   ],
   growth: [
-    /(?:revenue\s+)?growth[:\s]+([\d.,]+)%?/i,
-    /yoy[:\s]+([\d.,]+)%?/i
-  ],
-  sector: [
-    /sector[:\s]+([a-zA-Z]+)/i
+    /(?:revenue\s+)?growth[:\s\-]*([\d,]+\.?\d*)%?/gi,
+    /yoy[:\s\-]*([\d,]+\.?\d*)%?/gi,
+    /year[\-\s]over[\-\s]year[:\s\-]*([\d,]+\.?\d*)%?/gi
   ]
 };
+console.log('📄 PDF Extraction Debug:');
+console.log('  - Text length:', text.length);
+console.log('  - First 200 chars:', text.substring(0, 200));
+
 
 //   const patterns = {
 //     revenue: [
@@ -368,17 +649,27 @@ const patterns = {
 //     ]
 //   };
 
-  const extract = (patternList) => {
-    for (const pattern of patternList) {
-      const match = lowerText.match(pattern);
-      if (match) {
-        const value = parseFloat(match[1].replace(',', '.'));
-        const unit = match[2]?.toLowerCase();
-        return unit && (unit.includes('b') || unit.includes('billion')) ? value * 1000 : value;
-      }
+//new block
+const extract = (patternList) => {
+  for (const pattern of patternList) {
+    const match = text.match(pattern);  // Use original text (not lowercased) for better number detection
+    if (match) {
+      return parseFinancialNumber(match[1]);  // Use our robust parser
     }
-    return null;
-  };
+  }
+  return null;
+};
+  // const extract = (patternList) => {
+  //   for (const pattern of patternList) {
+  //     const match = lowerText.match(pattern);
+  //     if (match) {
+  //       const value = parseFloat(match[1].replace(',', '.'));
+  //       const unit = match[2]?.toLowerCase();
+  //       return unit && (unit.includes('b') || unit.includes('billion')) ? value * 1000 : value;
+  //     }
+  //   }
+  //   return null;
+  // };
 
   const revenue = extract(patterns.revenue);
   const ebitda = extract(patterns.ebitda);
@@ -703,7 +994,7 @@ Return only the explanation text, no JSON.
     return explanation.trim();
 
   } catch (error) {
-    console.error("Signal explanation generation error:", error.message);
+    console.error("Signal explanation generation error:", error);
     return `This ${dealSummary.dealSignal.toLowerCase()} deal rating reflects ${dealSummary.valuationStatus.toLowerCase()} valuation at ${dealSummary.evToEbitda}x EV/EBITDA (sector avg: ${dealSummary.sectorAvgEV}x).`;
   }
 };
