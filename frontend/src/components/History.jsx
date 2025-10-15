@@ -22,21 +22,36 @@ function History() {
 
   const fetchDeals = async () => {
     try {
+      // Try localStorage first
+      const cached = localStorage.getItem('deals');
+      if (cached) {
+        const data = JSON.parse(cached);
+        setDeals(data);
+        setFilteredDeals(data);
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch('/api/deals');
       if (response.ok) {
         const data = await response.json();
         setDeals(data);
         setFilteredDeals(data);
+        try { localStorage.setItem('deals', JSON.stringify(data)); } catch {}
       } else {
         // Fallback to mock data if API fails
-        setDeals(getMockDeals());
-        setFilteredDeals(getMockDeals());
+        const mock = getMockDeals();
+        setDeals(mock);
+        setFilteredDeals(mock);
+        try { localStorage.setItem('deals', JSON.stringify(mock)); } catch {}
       }
     } catch (error) {
       console.error('Error fetching deals:', error);
       // Fallback to mock data
-      setDeals(getMockDeals());
-      setFilteredDeals(getMockDeals());
+      const mock = getMockDeals();
+      setDeals(mock);
+      setFilteredDeals(mock);
+      try { localStorage.setItem('deals', JSON.stringify(mock)); } catch {}
     }
     setLoading(false);
   };
@@ -137,6 +152,19 @@ function History() {
   };
 
   const industries = ['all', ...new Set(deals.map(deal => deal.industry))];
+
+  // keep localStorage up to date when deals change
+  useEffect(() => {
+    try {
+      if (deals && deals.length > 0) {
+        localStorage.setItem('deals', JSON.stringify(deals));
+      } else {
+        localStorage.removeItem('deals');
+      }
+    } catch (e) {
+      console.error('Failed to write deals to localStorage', e);
+    }
+  }, [deals]);
 
   if (loading) {
     return (
