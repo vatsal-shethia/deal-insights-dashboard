@@ -106,11 +106,24 @@ function CompareDeals() {
       ]);
 
       if (!responseA.ok || !responseB.ok) {
-        throw new Error('Failed to fetch deal data');
+        //new block
+        const errorMsg = `Failed to fetch deals. Status: ${responseA.status}, ${responseB.status}`;
+        console.error(errorMsg);
+        throw new Error(errorMsg);
+        // throw new Error('Failed to fetch deal data');
       }
 
       const dealAData = await responseA.json();
       const dealBData = await responseB.json();
+
+      //new block
+       console.log('Deal A Data:', dealAData);
+      console.log('Deal B Data:', dealBData);
+
+      // Validate data structure
+      if (!dealAData || !dealBData) {
+        throw new Error('Invalid deal data received');
+      }
 
       setDealA(dealAData);
       setDealB(dealBData);
@@ -595,36 +608,6 @@ function CompareDeals() {
             </div>
           </div>
         </div> */}
-
-        <div style={{ 
-          backgroundColor: 'white', 
-          border: '1px solid #e5ddd5',
-          borderRadius: '12px', 
-          padding: '2rem',
-          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)'
-        }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '1.5rem' }}>
-            Revenue Trend Comparison
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={mergeChartData()}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5ddd5" />
-              <XAxis dataKey="period" stroke="#999999" style={{ fontSize: '0.75rem' }} />
-              <YAxis stroke="#999999" style={{ fontSize: '0.75rem' }} />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'white', 
-                  border: '1px solid #e5ddd5',
-                  borderRadius: '6px',
-                  fontSize: '0.875rem'
-                }}
-              />
-              <Legend />
-              <Line type="monotone" dataKey="dealA" stroke="#d4a574" strokeWidth={2} name="Deal A" dot={{ fill: '#d4a574', r: 4 }} />
-              <Line type="monotone" dataKey="dealB" stroke="#b88a5f" strokeWidth={2} name="Deal B" dot={{ fill: '#b88a5f', r: 4 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
 
       </main>
     </div>
