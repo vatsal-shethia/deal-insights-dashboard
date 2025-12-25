@@ -13,16 +13,26 @@ Built for **finance professionals, analysts, and developers**, this platform tra
 
 ---
 
+## 🔗 Live URLs
+
+- **Frontend (Vercel):**  
+  https://deal-insights-frontend.vercel.app _(example — replace with actual)_
+
+- **Backend API (Render):**  
+  https://deal-insights-backend.onrender.com
+
+---
+
 ## ✨ Core Highlights
 
-| Feature | Description |
-| :--- | :--- |
-| **📊 Smart Financial Parsing** | Reads complex PDFs and CSVs with flexible header recognition, automatic unit conversion, and intelligent normalization. |
-| **🧮 Valuation Intelligence** | Calculates key ratios (EV/EBITDA, Debt Ratios, Margins) and assigns financial health scores vs. sector benchmarks. |
-| **🤖 AI Deal Assessment** | Uses **Gemini** to provide a concise, reasoned assessment classifying the deal as “**Attractive**,” “**Neutral**,” or “**Cautious**.” |
-| **🧩 Deal Comparison Engine** | Compares two companies head-to-head and identifies the better investment, complete with detailed reasoning. |
-| **💬 AI Chat Assistant** | Enables natural language Q&A for deep, deal-specific analysis and quick information retrieval. |
-| **🧠 Resilient Logic** | Intelligently fills missing critical financial metrics (e.g., EBITDA-based estimations) to ensure a complete analysis. |
+| Feature                        | Description                                                                                                                           |
+| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
+| **📊 Smart Financial Parsing** | Reads complex PDFs and CSVs with flexible header recognition, automatic unit conversion, and intelligent normalization.               |
+| **🧮 Valuation Intelligence**  | Calculates key ratios (EV/EBITDA, Debt Ratios, Margins) and assigns financial health scores vs. sector benchmarks.                    |
+| **🤖 AI Deal Assessment**      | Uses **Gemini** to provide a concise, reasoned assessment classifying the deal as “**Attractive**,” “**Neutral**,” or “**Cautious**.” |
+| **🧩 Deal Comparison Engine**  | Compares two companies head-to-head and identifies the better investment, complete with detailed reasoning.                           |
+| **💬 AI Chat Assistant**       | Enables natural language Q&A for deep, deal-specific analysis and quick information retrieval.                                        |
+| **🧠 Resilient Logic**         | Intelligently fills missing critical financial metrics (e.g., EBITDA-based estimations) to ensure a complete analysis.                |
 
 ---
 
@@ -40,23 +50,23 @@ Built for **finance professionals, analysts, and developers**, this platform tra
 
 ### Format & Specifications
 
-| Type | Format | Max Size | Notes |
-| :--- | :--- | :--- | :--- |
-| **CSV** | `.csv` | 10 MB | Accepts multiple header formats, currency symbols, and units (M, B, %). |
-| **PDF** | `.pdf` | 10 MB | Parses text-based reports and semi-structured financial summaries. |
+| Type    | Format | Max Size | Notes                                                                   |
+| :------ | :----- | :------- | :---------------------------------------------------------------------- |
+| **CSV** | `.csv` | 10 MB    | Accepts multiple header formats, currency symbols, and units (M, B, %). |
+| **PDF** | `.pdf` | 10 MB    | Parses text-based reports and semi-structured financial summaries.      |
 
 ### CSV Header Flexibility
 
 The parser intelligently normalizes messy financial headers to a standard format:
 
-| Metric | Accepted Headers |
-| :--- | :--- |
-| **Revenue** | `revenue`, `sales`, `total_revenue`, `net_sales` |
-| **EBITDA** | `ebitda`, `earnings`, `operating_income`, `op_profit` |
-| **Net Income** | `net_income`, `profit`, `net_earnings` |
-| **Assets** | `total_assets`, `assets` |
-| **Liabilities** | `total_liabilities`, `debt`, `total_debt` |
-| **Cash Flow** | `cash_flow`, `operating_cash_flow`, `ocf` |
+| Metric          | Accepted Headers                                      |
+| :-------------- | :---------------------------------------------------- |
+| **Revenue**     | `revenue`, `sales`, `total_revenue`, `net_sales`      |
+| **EBITDA**      | `ebitda`, `earnings`, `operating_income`, `op_profit` |
+| **Net Income**  | `net_income`, `profit`, `net_earnings`                |
+| **Assets**      | `total_assets`, `assets`                              |
+| **Liabilities** | `total_liabilities`, `debt`, `total_debt`             |
+| **Cash Flow**   | `cash_flow`, `operating_cash_flow`, `ocf`             |
 
 **Also Handles:** Currency symbols ($\text{$}$, $\text{€}$, $\text{₹}$), brackets for negatives ($(500) \rightarrow -500$), Units ($\text{1.25M / 2B / 300K}$), and Percentages ($\text{12.5\%} \rightarrow 12.5$).
 
@@ -64,128 +74,189 @@ The parser intelligently normalizes messy financial headers to a standard format
 
 The AI is trained to recognize real-world financial text patterns in unstructured documents, such as:
 
-* `Total Revenue: $3.25 billion`
-* `EBITDA stood at $680M`
-* `Debt-to-EBITDA ratio: 1.8x`
-* `Revenue Growth: 12%`
+- `Total Revenue: $3.25 billion`
+- `EBITDA stood at $680M`
+- `Debt-to-EBITDA ratio: 1.8x`
+- `Revenue Growth: 12%`
 
 ---
 
 ## 🔍 Example AI Output
 
-| Section | Content |
-| :--- | :--- |
+| Section          | Content                                                                                                                                                                                                                                       |
+| :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Deal Summary** | Apex Materials Inc. shows consistent revenue growth with $\text{\$3.2B}$ in sales and a $\text{14\%}$ YoY increase. Strong EBITDA margins ($\text{18\%}$) and conservative leverage ($\text{1.7x Debt/EBITDA}$) indicate robust fundamentals. |
-| **Deal Signal** | **Attractive** |
+| **Deal Signal**  | **Attractive**                                                                                                                                                                                                                                |
 
 ### Minimum Data Required
 
-| Requirement | Description |
-| :--- | :--- |
-| **✅ Revenue** | Mandatory for analysis. |
-| **✅ Any 1 additional metric** | EBITDA, Assets, or Liabilities. |
-| **💡 Recommended** | Net Income, Cash Flow, and Growth Rate provide the most comprehensive analysis. |
+| Requirement                    | Description                                                                     |
+| :----------------------------- | :------------------------------------------------------------------------------ |
+| **✅ Revenue**                 | Mandatory for analysis.                                                         |
+| **✅ Any 1 additional metric** | EBITDA, Assets, or Liabilities.                                                 |
+| **💡 Recommended**             | Net Income, Cash Flow, and Growth Rate provide the most comprehensive analysis. |
 
 ---
 
 ## 🧰 Tech Stack
 
-| Layer | Technology |
-| :--- | :--- |
-| **Frontend** | `React.js` + `Tailwind CSS` |
-| **Backend** | `Node.js` + `Express` |
+| Layer         | Technology                              |
+| :------------ | :-------------------------------------- |
+| **Frontend**  | `React.js` + `Tailwind CSS`             |
+| **Backend**   | `Node.js` + `Express`                   |
 | **AI Engine** | **Google Gemini** (via `@google/genai`) |
-| **Parsing** | `pdf-parse`, `csv-parser`, `multer` |
-| **Storage** | In-memory cache (DB-ready architecture) |
+| **Parsing**   | `pdf-parse`, `csv-parser`, `multer`     |
+| **Storage**   | In-memory cache (DB-ready architecture) |
 
 ### 🏗️ Project Architecture
 
 deal-insights-dashboard/
 ├── backend/
-│   ├── controllers/      # Core logic for analysis, comparison, chat
-│   ├── middlewares/      # Upload, validation, error handling
-│   ├── routes/           # Organized API endpoints
-│   ├── utils/            # Metric extraction & calculations
-│   └── server.js         # Express entry point
+│ ├── controllers/ # Core logic for analysis, comparison, chat
+│ ├── middlewares/ # Upload, validation, error handling
+│ ├── routes/ # Organized API endpoints
+│ ├── utils/ # Metric extraction & calculations
+│ └── server.js # Express entry point
 │
 ├── frontend/
-│   └── src/
-│       ├── pages/        # Dashboard, Compare, History views
-│       ├── components/   # Reusable UI elements
-│       └── App.jsx
+│ └── src/
+│ ├── pages/ # Dashboard, Compare, History views
+│ ├── components/ # Reusable UI elements
+│ └── App.jsx
 │
 └── README.md
-
 
 ---
 
 ## 🧠 Installation Guide
 
-### 1. Clone the Repository
+## 🛠️ Installation & Local Setup
+
+This project is a full-stack application consisting of a **React (Vite) frontend** and a **Node.js (Express) backend**.  
+Both services must be running locally for the application to function correctly.
+
+---
+
+## 📋 Prerequisites
+
+Ensure the following are installed on your system:
+
+- **Node.js** (v18 or higher recommended)
+- **npm** (bundled with Node.js)
+- **Git**
+- **Gemini API Key** (required for AI analysis)
+
+Verify installations:
 
 ```bash
-git clone [https://github.com/yourusername/deal-insights-dashboard.git](https://github.com/yourusername/deal-insights-dashboard.git)
+node -v
+npm -v
+git --version
+
+1️⃣ Clone the Repository
+git clone https://github.com/vatsal-shethia/deal-insights-dashboard.git
 cd deal-insights-dashboard
 
-2. Setup Backend
-
-Bash
-
+2️⃣ Backend Setup (Node.js + Express)
+Navigate to backend directory
 cd backend
-npm install
-Create a .env file in the backend/ directory:
 
-Code snippet
+Install dependencies
+npm install
+
+Create environment variables
+
+Create a .env file inside the backend folder:
 
 PORT=5000
-GEMINI_API_KEY=your_google_gemini_api_key
-Start the server:
+GEMINI_API_KEY=your_gemini_api_key_here
 
-Bash
 
+⚠️ Do not commit .env files to version control.
+
+Start the backend server
 npm start
 
-3. Setup Frontend
 
-Bash
+Expected output:
 
-cd ../frontend
+Server running on port 5000
+Gemini API Key configured: true
+
+
+Backend will be available at:
+
+http://localhost:5000
+
+3️⃣ Frontend Setup (React + Vite)
+
+Open a new terminal window, then:
+
+cd frontend
 npm install
+
+Create frontend environment variables
+
+Create a .env file inside the frontend directory:
+
+VITE_API_BASE_URL=http://localhost:5000
+
+
+ℹ️ Vite requires environment variables to be prefixed with VITE_.
+
+Start the frontend development server
 npm run dev
-🧩 API Endpoints
-Method	Endpoint	Purpose
-POST	/api/deals/upload	Upload and analyze a financial file.
-POST	/api/deals/:dealId/ask	Ask deal-specific AI questions.
-POST	/api/deals/compare	Compare two deals side-by-side.
-GET	/api/deals	Retrieve all uploaded deal summaries.
-GET	/api/deals/:dealId	Get a specific deal's full analysis.
-GET	/api/health	Check API health and configuration.
 
-🌐 Ideal Use Cases
-Private Equity & Venture Capital Analysis
 
-Financial Due Diligence Automation
+Frontend will be available at:
 
-Corporate Strategy & M&A Evaluation
+http://localhost:5173
 
-Finance-focused AI Research Projects
+4️⃣ Running the Application Locally
 
-Educational Finance & Valuation Demonstrations
+Open http://localhost:5173 in your browser
 
-🏁 Future Enhancements
-Integrate a persistent Database (MongoDB / PostgreSQL)
+Upload a CSV or PDF financial document
 
-Add Authentication and User Profiles
+View generated deal insights and dashboards
 
-Export AI Reports as shareable PDFs
+Ask questions and compare multiple deals
 
-OCR Layer for processing image-based/scanned PDFs
+🔁 Development Notes
 
-Benchmarking Across Multiple Deals in a portfolio view
+Local API requests are routed to http://localhost:5000
 
-👨‍💻 Developer
-Vatsal Shethia
-Software Engineer | Fintech & AI Enthusiast
+Production frontend uses the deployed backend URL
 
-🪙 Vision
-“To bridge the gap between raw financial data and intelligent investment insights—empowering analysts with clarity, speed, and AI-driven precision.”
+All API interactions are centralized via:
+
+frontend/src/utils/api.js
+
+🧪 Common Issues & Troubleshooting
+❌ API requests failing
+
+Ensure backend is running on port 5000
+
+Verify .env variables are loaded correctly
+
+❌ AI analysis not working
+
+Confirm GEMINI_API_KEY is valid
+
+Check backend logs for API errors
+
+❌ File upload errors
+
+Ensure file size and format are supported
+
+Check backend logs for parsing issues
+
+🛑 Stopping the Application
+
+To stop either service, press:
+
+Ctrl + C
+
+
+in the respective terminal window.
+```
