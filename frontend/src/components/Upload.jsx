@@ -77,7 +77,7 @@ function Upload() {
       const formData = new FormData();
       files.forEach((f) => formData.append("files", f));
 
-      const response = await apifetch("/api/deals/upload", {
+      const response = await apiFetch("/api/deals/upload", {
         method: "POST",
         body: formData,
       });
