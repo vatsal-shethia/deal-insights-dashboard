@@ -77,23 +77,23 @@ function Upload() {
       const formData = new FormData();
       files.forEach((f) => formData.append("files", f));
 
-      const response = await apiFetch("/api/deals/upload", {
+      const data = await apiFetch("/api/deals/upload", {
         method: "POST",
         body: formData,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Upload failed");
+      if (!data?.deal) {
+        throw new Error("Invalid upload response");
       }
 
-      const data = await response.json();
       // Navigate to dashboard with the new deal data
-      navigate(`/dashboard/${data.dealId}`, {
+      navigate(`/dashboard/${data.deal.id}`, {
         state: { deal: data.deal },
       });
     } catch (err) {
+      console.error("Upload error:", err);
       setError(err.message || "Upload failed. Please try again.");
+    } finally {
       setUploading(false);
     }
   };
