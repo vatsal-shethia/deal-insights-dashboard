@@ -1,20 +1,22 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-if (!API_BASE_URL) {
-  throw new Error("VITE_API_BASE_URL is not defined");
-}
+const BASE_URL = import.meta.env.VITE_API_BASE_URL?.trim();
 
 export async function apiFetch(path, options = {}) {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    credentials: "include",
-    ...options,
-  });
+  const url = `${BASE_URL}${path}`;
 
-  const text = await res.text();
+  const res = await fetch(url, options);
 
   if (!res.ok) {
-    throw new Error(text || `Request failed with status ${res.status}`);
+    let errorMessage = `Request failed: ${res.status}`;
+    try {
+      const err = await res.json();
+      errorMessage = err.error || errorMessage;
+    } catch {}
+    throw new Error(errorMessage);
   }
 
-  return text ? JSON.parse(text) : {};
+  // Handle empty responses safely
+  const text = await res.text();
+  if (!text) return null;
+
+  return JSON.parse(text);
 }
