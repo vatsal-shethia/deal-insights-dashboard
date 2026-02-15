@@ -16,7 +16,7 @@ Built for **finance professionals, analysts, and developers**, this platform tra
 ## 🔗 Live URLs
 
 - **Frontend (Vercel):**  
-  https://deal-insights-frontend.vercel.app _(example — replace with actual)_
+  https://deal-insights-frontend-rust.vercel.app
 
 - **Backend API (Render):**  
   https://deal-insights-backend.onrender.com
